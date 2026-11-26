@@ -8,7 +8,8 @@ const esc = (s) => s.replace(/\\,/g, ",").replace(/\\n/g, " ").replace(/\;/g, ";
 export const parseIcs = (txt, from, to) => unf(txt).split("BEGIN:VEVENT").slice(1).map(b => { const d = (b.match(/DTSTART(?:;VALUE=DATE)?:(\d{8})/) || [])[1], t = (b.match(/\nSUMMARY:(.*)/) || [])[1]; if (!d || !t) return null;
   return { date: d.slice(0, 4) + "-" + d.slice(4, 6) + "-" + d.slice(6, 8), title: esc(t) }; }).filter(x => x && x.date >= from && x.date <= to).sort((a, b) => a.date.localeCompare(b.date));
 async function get(u) { const c = new AbortController(); const t = setTimeout(() => c.abort(), 6000); try { const r = await fetch(u, { signal: c.signal, headers: { "User-Agent": "Mozilla/5.0" } }); return r.ok ? await r.text() : null; } catch (e) { return null; } finally { clearTimeout(t); } }
-export default async () => {
+export default async (req) => {
+  if (new URL(req.url).searchParams.get("probe")) { const o = {}; for (const q of ["Indian Premier League", "English Premier League", "Indian Super League", "Pro Kabaddi"]) { const x = await get("https://www.thesportsdb.com/api/v1/json/3/search_all_leagues.php?s=" + encodeURIComponent(q.split(" ")[0])); o[q] = x ? x.slice(0, 160) : null; } for (const id of ["4460", "4328", "4391"]) { const x = await get("https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=" + id); o["next" + id] = x ? x.slice(0, 200) : null; const y = await get("https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=" + id); o["past" + id] = y ? y.slice(0, 120) : null; } return J(o); }
   let s = null; try { s = getStore("events"); } catch (e) {}
   try { const hit = s && await s.get("v1", { type: "json" }); if (hit && Date.now() - hit.t < 12 * 3600e3) return J(hit.data); } catch (e) {}
   const today = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10), to = new Date(Date.now() + 5.5 * 3600e3 + 120 * 864e5).toISOString().slice(0, 10);
