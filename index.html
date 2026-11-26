@@ -2430,6 +2430,24 @@ document.addEventListener("submit", async e => { if(e.target.id !== "ai-f") retu
   const hl = ranked().slice(0, 30).map(c => c.lead.title);
   try{ out.innerHTML = '<p>'+fmtAI(await askAI({ mode:"ask", headlines:hl, q }))+'</p>'; }catch(err){ out.innerHTML = '<p class="muted">'+esc(err.message)+'</p>'; } });
 
+/* ================= v8: free Web Push alerts for new RBI / SEBI official releases ================= */
+const pushOK = () => /^https:$/.test(location.protocol) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const b64u = s => { const p = "=".repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
+async function pushState(){ try{ const reg = await navigator.serviceWorker.getRegistration(); const sub = reg && await reg.pushManager.getSubscription(); return { reg, sub }; }catch(e){ return {}; } }
+async function paintPush(msg){ const box = document.getElementById("push-box"); if(!box) return; const { sub } = await pushState(), denied = Notification.permission === "denied";
+  box.innerHTML = '<p class="muted small" role="status">'+esc(msg || (denied ? "Notifications are blocked in your browser settings for this site." : sub ? "Alerts are on for this device." : "Off."))+'</p>'
+    + (denied ? "" : sub ? '<button class="btn sec2" data-v3="push-off">Turn alerts off</button>' : '<button class="btn sec2" data-v3="push-on">Turn on alerts</button>')
+    + '<p class="muted small">You get a notification when RBI or SEBI publish something new (up to 3 per check). No account needed. On iPhone, add the app to your Home Screen first.</p>'; }
+const __os8 = openSettings;
+openSettings = function(){ __os8(); const body = document.querySelector(".setl"); if(!body || !pushOK()) return; const d = document.createElement("div"); d.innerHTML = '<h3>Alerts</h3><div id="push-box"></div>'; body.appendChild(d); paintPush(); };
+document.addEventListener("click", async e => { const b = e.target.closest("[data-v3]"); if(!b) return; const a = b.dataset.v3;
+  if(a === "push-on"){ try{ const perm = await Notification.requestPermission(); if(perm !== "granted"){ paintPush("Permission was not granted."); return; }
+      const cfg = await (await fetch("/api/push?config=1")).json(); const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:b64u(cfg.key) });
+      const r = await fetch("/api/push", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(sub.toJSON()) }); if(!r.ok) throw new Error("server");
+      paintPush("Alerts are on for this device."); }catch(err){ paintPush("Could not turn on alerts. Try again."); } }
+  else if(a === "push-off"){ try{ const { sub } = await pushState(); if(sub){ await fetch("/api/push", { method:"DELETE", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(sub.toJSON()) }); await sub.unsubscribe(); } }catch(err){} paintPush("Alerts are off."); } });
+
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
 function renderSoon(){ if(!rTimer) rTimer = setTimeout(() => { rTimer = null; render(); }, 280); }

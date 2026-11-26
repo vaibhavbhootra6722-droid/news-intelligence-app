@@ -1,1 +1,1 @@
-{ "name": "news-intelligence-app", "private": true, "type": "module", "dependencies": { "@netlify/blobs": "^8.1.0" } }
+{"name":"news-intelligence-app","private":true,"type":"module","dependencies":{"@netlify/blobs":"^8.1.0","web-push":"^4.0.0"}}
