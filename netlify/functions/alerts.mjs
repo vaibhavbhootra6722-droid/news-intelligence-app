@@ -6,6 +6,10 @@ const dec = (s) => s.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/&amp;/g, "&").re
 export const parse = (xml) => [...xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)].slice(0, 15).map(m => { const t = (m[0].match(/<title>([\s\S]*?)<\/title>/i) || [])[1], l = (m[0].match(/<link>([\s\S]*?)<\/link>/i) || [])[1]; return t && l ? { title: dec(t).slice(0, 160), link: dec(l) } : null; }).filter(Boolean);
 export default async () => {
   const s = store(); await vapid();
+  // Morning briefing nudge: once a day, first run at/after 07:30 IST
+  try { const ist = new Date(Date.now() + 5.5 * 3600e3), day = ist.toISOString().slice(0, 10), mins = ist.getUTCHours() * 60 + ist.getUTCMinutes();
+    if (mins >= 450 && mins < 600 && (await s.get("morning", { type: "json" })) !== day) { await s.setJSON("morning", day); const subs0 = (await s.get("subs", { type: "json" })) || {}; const payload = JSON.stringify({ title: "Good morning", body: "Your 60-second briefing is ready.", url: "/" });
+      await Promise.all(Object.keys(subs0).map(async id => { try { await webpush.sendNotification(subs0[id], payload, { TTL: 7200 }); } catch (e) { if (e.statusCode === 404 || e.statusCode === 410) { delete subs0[id]; await s.setJSON("subs", subs0); } } })); } } catch (e) {}
   const seenAll = await s.get("seen", { type: "json" }); const first = !seenAll; const seen = new Set(seenAll || []); const fresh = [];
   for (const [src, u] of FEEDS) { const x = await live(u); if (!x) continue; parse(x).forEach(it => { if (!seen.has(it.link)) { seen.add(it.link); fresh.push({ ...it, src }); } }); }
   await s.setJSON("seen", [...seen].slice(-400));

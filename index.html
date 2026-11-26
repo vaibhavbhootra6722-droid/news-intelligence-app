@@ -543,6 +543,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 .askbar{margin:0 0 10px}.aiwhy{margin:10px 0}.aiout{margin-top:8px}
 .bpl{margin:6px 0 4px;padding-left:18px}.bpl li{margin:6px 0;line-height:1.4}.bigp{background:var(--panel);border-radius:14px;padding:12px 16px;margin:0 0 16px}
 .cmgph{height:120px;border-radius:12px;margin:6px 0 10px}
+.circ{width:100%;border-collapse:collapse;font-size:.85rem;margin:8px 0}.circ th{text-align:left;width:30%;color:var(--soft);font-weight:600;padding:5px 8px 5px 0;vertical-align:top}.circ td{padding:5px 0;border-top:1px solid var(--panel2)}.circ tr:first-child td,.circ tr:first-child th{border-top:0}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 <body>
@@ -1933,7 +1934,7 @@ function trackerPage(){
         + '<div><dt>Applicable entities</dt><dd>'+(ents.length ? ents.map(x => '<span class="chip2">'+esc(x)+'</span>').join(" ") : "Not stated in the headline")+'</dd></div>'
         + '<div><dt>Effective date</dt><dd>'+esc(eff || "Not stated in the headline")+'</dd></div>'
         + '<div><dt>Transitional provisions / action</dt><dd>Not stated — see the source</dd></div></dl>'
-        + '<a class="chip" href="'+esc(safeUrl(c.lead.link))+'" target="_blank" rel="noopener noreferrer">Original source '+icon("i-ext")+'</a>'+(typeof aiOn !== "undefined" && aiOn ? ' <span class="aiwhy"><button class="chip" data-v3="ai-desk:'+c.id+'">✨ Impact note (AI)</button><div class="aiout" role="status" aria-live="polite"></div></span>' : '')+'</article>'; }).join("");
+        + '<a class="chip" href="'+esc(safeUrl(c.lead.link))+'" target="_blank" rel="noopener noreferrer">Original source '+icon("i-ext")+'</a>'+(typeof aiOn !== "undefined" && aiOn && c.tier===1 && /(^|\.)(rbi\.org\.in|sebi\.gov\.in|pib\.gov\.in)\//.test(safeUrl(c.lead.link).replace(/^https?:\/\//,"")) ? ' <span class="aiwhy"><button class="chip" data-v3="ai-circ:'+c.id+'">📄 Read the circular (AI)</button><div class="aiout" role="status" aria-live="polite"></div></span>' : '')+(typeof aiOn !== "undefined" && aiOn ? ' <span class="aiwhy"><button class="chip" data-v3="ai-desk:'+c.id+'">✨ Impact note (AI)</button><div class="aiout" role="status" aria-live="polite"></div></span>' : '')+'</article>'; }).join("");
 }
 /* Standard recurring statutory due dates. Extensions are announced by the authority, so each row links to the official portal. */
 const DEADLINES = [
@@ -2434,6 +2435,10 @@ document.addEventListener("click", async e => { const b = e.target.closest("[dat
   else if(a.startsWith("ai-desk:")){ const c = byId(a.slice(8)); const out = b.parentNode.querySelector(".aiout"); if(!c || !out) return; b.disabled = true; out.innerHTML = '<p class="muted small">Thinking…</p>';
     const hl = [...new Set((c.reports || []).map(r => r.title))].slice(0, 6); if(!hl.length) hl.push(c.lead.title);
     try{ out.innerHTML = '<p>'+fmtAI(await askAI({ mode:"desk", headlines:hl }))+'</p>'+aiNote; }catch(err){ out.innerHTML = '<p class="muted">'+esc(err.message)+'</p>'; } b.disabled = false; }
+  else if(a.startsWith("ai-circ:")){ const c = byId(a.slice(8)); const out = b.parentNode.querySelector(".aiout"); if(!c || !out) return; b.disabled = true; out.innerHTML = '<p class="muted small">Reading the official page…</p>';
+    try{ const r = await fetch("/api/circular?u="+encodeURIComponent(safeUrl(c.lead.link))); const j = await r.json(); if(!r.ok) throw new Error(j.error || "Could not read it");
+      const row = (k, t) => '<tr><th scope="row">'+t+'</th><td>'+esc(j[k])+'</td></tr>';
+      out.innerHTML = '<table class="circ"><tbody>'+row("issued_by","Issued by")+row("reference","Reference")+row("date_issued","Date")+row("applies_to","Applies to")+row("what_changed","What changed")+row("previous_requirement","Before")+row("revised_requirement","After")+row("effective_date","Effective")+row("action_required","Action")+'</tbody></table><p class="muted small">AI-extracted from the official page text only; “Not stated in the text” means the page does not say. Always check the original document.</p>'; }catch(err){ out.innerHTML = '<p class="muted">'+esc(err.message)+'</p>'; } b.disabled = false; }
   else if(a === "ai-open"){ const L = $("layer"); L.innerHTML = '<div class="scrim" id="dscrim"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="ai-t"><div class="drawer-h"><span class="kpi-note" style="margin:0">Ask the News</span><button class="iconbtn" id="dclose" aria-label="Close">✕</button></div><div class="drawer-b"><h2 id="ai-t">Ask about today’s news</h2><form id="ai-f"><label class="sr" for="ai-q">Your question</label><input id="ai-q" class="tfilter" type="text" maxlength="300" placeholder="e.g. What is happening with RBI today?" autocomplete="off"><button class="btn" type="submit" style="margin-top:8px">Ask</button></form><div id="ai-a" role="status" aria-live="polite"></div>'+aiNote+'</div></aside>'; setTimeout(() => { const q = $("ai-q"); if(q) q.focus(); }, 50); }
 });
 document.addEventListener("submit", async e => { if(e.target.id !== "ai-f") return; e.preventDefault(); const q = $("ai-q").value.trim(), out = $("ai-a"); if(q.length < 3) return; out.innerHTML = '<p class="muted small">Thinking…</p>';
