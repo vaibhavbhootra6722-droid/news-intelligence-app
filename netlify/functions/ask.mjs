@@ -2,7 +2,7 @@
 // modes: "why" (cached per story) and "ask" (question over today's headlines). Daily cap protects the free quota.
 import { getStore } from "@netlify/blobs";
 const J = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
-const MODEL = "gemini-2.5-flash-lite", CAP = 1200;
+const MODEL = "gemini-3.5-flash-lite", CAP = 1200;
 const SYS = "You are a careful news analyst for Indian readers. Use ONLY the headlines provided. Never invent facts, numbers, names or dates. If the headlines do not support an answer, say so plainly. Be concise and plain-spoken. Do not give investment, tax or legal advice.";
 const hash = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; return h.toString(36); };
 async function gem(prompt) {
@@ -10,7 +10,7 @@ async function gem(prompt) {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), 9000);
   try {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, { method: "POST", signal: c.signal, headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 400, thinkingConfig: { thinkingBudget: 0 } } }) });
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 400 } }) });
     if (!r.ok) { let m = ""; try { m = ((await r.json()).error || {}).message || ""; } catch (e) {} console.log("gemini", r.status, m.slice(0, 200)); return { err: r.status + " " + m.slice(0, 160) }; } const j = await r.json(); return (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("").trim() || null;
   } catch (e) { return null; } finally { clearTimeout(t); }
 }
