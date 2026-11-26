@@ -21,7 +21,7 @@ export default async (req) => {
   if (req.method !== "POST") return J({ error: "method" }, 405);
   let b; try { const raw = await req.text(); if (raw.length > 12000) return J({ error: "too large" }, 413); b = JSON.parse(raw); } catch (e) { return J({ error: "bad json" }, 400); }
   const hl = (Array.isArray(b.headlines) ? b.headlines : []).map(x => String(x).slice(0, 220)).slice(0, 30);
-  if (!hl.length || (b.mode !== "why" && b.mode !== "ask")) return J({ error: "bad request" }, 400);
+  if (!hl.length || !["why","ask","brief","desk"].includes(b.mode)) return J({ error: "bad request" }, 400);
   const q = String(b.q || "").slice(0, 300);
   if (b.mode === "ask" && q.length < 3) return J({ error: "bad request" }, 400);
   let s = null; try { s = getStore("ai"); } catch (e) {}
@@ -30,7 +30,11 @@ export default async (req) => {
   const day = new Date().toISOString().slice(0, 10);
   try { const n = (s && await s.get("n" + day, { type: "json" })) || 0; if (n >= CAP) return J({ error: "Daily free limit reached. Try again tomorrow." }, 429); s && await s.setJSON("n" + day, n + 1); } catch (e) {}
   const list = hl.map((x, i) => (i + 1) + ". " + x).join("\n");
-  const prompt = b.mode === "why"
+  const prompt = b.mode === "brief"
+    ? "Today's top headlines:\n" + list + "\n\nWrite 'The big picture today' as exactly 3 bullets starting with '- '. Each bullet is one plain sentence (max 22 words) that groups related headlines into a theme, ending with the headline numbers in brackets like [2][5]. Use only what the headlines state."
+    : b.mode === "desk"
+    ? "Regulatory / professional headline(s) from India:\n" + list + "\n\nFor a chartered accountant or banker, write: 'What it is:' one sentence using only the headline. 'Who may be affected:' one line, hedged if the headline does not say. 'Check:' one line naming what to verify in the original circular (previous vs revised requirement, effective date, applicability). Do not state any rule, number or date that is not in the headline."
+    : b.mode === "why"
     ? "These headlines are reports of one story from different outlets:\n" + list + "\n\nWrite exactly two short parts. 'What happened:' one sentence using only what the headlines state. 'Why it matters:' one or two sentences on likely relevance to an Indian reader or to finance and compliance professionals, clearly worded as context, not fact. If the headlines are too thin, say 'Not enough in the headlines to say more.'"
     : "Today's headlines:\n" + list + "\n\nQuestion: " + q + "\n\nAnswer in at most 120 words using only these headlines. Cite headline numbers like [3]. If they do not answer it, say so.";
   const text = await gem(prompt);
