@@ -1264,6 +1264,7 @@ function parseFeed(res, feedId, feed){
       const src = it.querySelector("source"); const source = src ? src.textContent.trim() : "";
       let title = (it.querySelector("title")||{}).textContent || "";
       if(source && title.endsWith(" - "+source)) title = title.slice(0, -(source.length+3));
+      if(source){ const m = title.match(/\s\|\s([^|]{2,40})$/); if(m && m[1].trim().toLowerCase().replace(/[^a-z0-9]/g,"") === source.toLowerCase().replace(/[^a-z0-9]/g,"")) title = title.slice(0, m.index); }
       return { title:title.trim(), link:(it.querySelector("link")||{}).textContent || "", source:source || (feed && feed.source) || "Unknown outlet", ts:Date.parse((it.querySelector("pubDate")||{}).textContent || ""), feed:feedId };
     });
   }
@@ -2173,7 +2174,7 @@ async function commonsSearch(q){
         const hay = nrm((p.title||"")+" "+(md.ObjectName ? md.ObjectName.value : "")+" "+(md.ImageDescription ? md.ImageDescription.value : "")+" "+(md.Categories ? md.Categories.value : ""));
         if(!need.every(w => hay.includes(w))) continue;
         res.push({ url:ii.thumburl || ii.url, w:ii.thumbwidth || 900, h:ii.thumbheight || 600, page:ii.descriptionshorturl || ii.descriptionurl, lic, by:stripHtml(md.Artist && md.Artist.value).slice(0, 60) || "Wikimedia Commons contributor",
-          alt:stripHtml(md.ObjectName && md.ObjectName.value || (p.title||"").replace(/^File:/, "").replace(/\.[a-z]+$/i, "")).slice(0, 140), subject:q });
+          alt:stripHtml(md.ObjectName && md.ObjectName.value || (p.title||"").replace(/^File:/, "").replace(/\.[a-z]+$/i, "")).slice(0, 140), subject:q, hay });
         if(res.length >= 3) break;
       }
       imgCacheSet(q, res); return res;
@@ -2183,7 +2184,12 @@ async function commonsSearch(q){
 const imgMem = new Map();
 async function imagesFor(c, want){
   want = want || 1; if(imgMem.has(c.id) && (imgMem.get(c.id).length >= want || imgMem.get(c.id).done)) return imgMem.get(c.id);
-  let out = []; for(const q of entitiesOf(c)){ const r = await commonsSearch(q); r.forEach(x => { if(!out.some(o => o.url===x.url)) out.push(x); }); if(out.length >= want && want===1) break; if(out.length >= 2) break; }
+  let out = []; const tw = nrm(String(c.lead.title).replace(/\s[-–|]\s[^-–|]{2,40}$/, "")).split(" ").filter(w => w.length >= 5 && !ENT_STOP.has(w[0].toUpperCase()+w.slice(1)));
+  const mapped = new Set(Object.values(ENT_MAP));
+  for(const q of entitiesOf(c)){ let r = await commonsSearch(q);
+    // a lone name or place (e.g. "Bangkok") is too loose on its own: the photo's own text must also share a topic word with the headline (e.g. "oil", "explosion")
+    if(!mapped.has(q) && q.split(" ").length === 1){ const qw = nrm(q); r = r.filter(x => x.hay && tw.some(w => w !== qw && x.hay.includes(w))); }
+    r.forEach(x => { if(!out.some(o => o.url===x.url)) out.push(x); }); if(out.length >= want && want===1) break; if(out.length >= 2) break; }
   out.done = true; imgMem.set(c.id, out); return out;
 }
 const credit = im => 'Photo: '+esc(im.by)+' · '+esc(im.lic)+' · <a href="'+esc(im.page||"https://commons.wikimedia.org")+'" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>';
@@ -2354,6 +2360,8 @@ function openAbout(){
     + '<p>Coverage is what the feeds return for that day. It is broad, not a guarantee of every story published. Very old dates may return fewer stories.</p>'
     + '<h3>How stories are selected, de-duplicated and summarised</h3><p><b>Selection:</b> every story is a headline from a Google News search for the chosen day; nothing is written by this app. <b>Duplicates:</b> reports of the same event are merged using shared words, names, numbers and time, so a story appears once. <b>Importance:</b> the ranking above, never raw popularity. <b>Summaries:</b> none are generated — only the publisher’s own headline is shown, so the app cannot add unsupported context.</p>'
     + '<h3>Corrections and content licensing</h3><p>“Report an error” on a story records your note on this device only; a reporting service needs a backend. Headlines and links belong to their publishers: this free app links back and does not copy article text. Using this content commercially needs licensed feeds — see the report.</p>'
+    + '<h3>Privacy notice (plain language)</h3><p>This app has no accounts and no server of its own that stores anything about you. Your saves, preferences, reading progress and usage counts stay in this browser and can be erased in Settings → Your data. To show news, your browser requests headlines through a free relay (Google News RSS via this site’s own function, or a relay you set), and requests photos and credits from Wikimedia Commons; those services see your IP address as any website would. No advertising or tracking scripts are used. This is a plain description of how the app works, not legal advice or a reviewed policy.</p>'
+    + '<h3>Terms and disclaimers (plain language)</h3><p>Headlines and links belong to their publishers; photos belong to their credited photographers under the licences shown. The app is for information only: it is not legal, tax, audit, investment or financial advice, regulatory items are derived from headlines and official feeds and must be checked against the official source, and deadlines shown are the standard dates only. Content is provided as is, without warranty.</p>'
     + '<p class="kpi-note">Days you load are saved on this device (the '+PACKS_MAX+' most recent), so revisiting them is instant.</p></div></aside>';
   $("dclose").focus();
 }
