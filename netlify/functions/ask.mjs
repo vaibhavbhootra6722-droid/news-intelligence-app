@@ -11,7 +11,7 @@ async function gem(prompt) {
   try {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, { method: "POST", signal: c.signal, headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({ systemInstruction: { parts: [{ text: SYS }] }, contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2, maxOutputTokens: 400, thinkingConfig: { thinkingBudget: 0 } } }) });
-    if (!r.ok) return null; const j = await r.json(); return (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("").trim() || null;
+    if (!r.ok) { let m = ""; try { m = ((await r.json()).error || {}).message || ""; } catch (e) {} console.log("gemini", r.status, m.slice(0, 200)); return { err: r.status + " " + m.slice(0, 160) }; } const j = await r.json(); return (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("").trim() || null;
   } catch (e) { return null; } finally { clearTimeout(t); }
 }
 export default async (req) => {
@@ -34,6 +34,7 @@ export default async (req) => {
     ? "These headlines are reports of one story from different outlets:\n" + list + "\n\nWrite exactly two short parts. 'What happened:' one sentence using only what the headlines state. 'Why it matters:' one or two sentences on likely relevance to an Indian reader or to finance and compliance professionals, clearly worded as context, not fact. If the headlines are too thin, say 'Not enough in the headlines to say more.'"
     : "Today's headlines:\n" + list + "\n\nQuestion: " + q + "\n\nAnswer in at most 120 words using only these headlines. Cite headline numbers like [3]. If they do not answer it, say so.";
   const text = await gem(prompt);
+  if (text && text.err) return J({ error: "AI error: " + text.err }, 502);
   if (!text) return J({ error: "The AI service is busy. Try again in a moment." }, 502);
   try { s && await s.setJSON(ck, { t: Date.now(), text }); } catch (e) {}
   return J({ text });
