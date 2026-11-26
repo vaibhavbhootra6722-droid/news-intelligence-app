@@ -535,6 +535,11 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 .tile .topic .star{min-height:36px;min-width:32px;padding:0 4px;width:auto}
 .tile .tph{height:120px}
 .tile .tt{top:84px}
+.plan{overflow:hidden;padding:0}
+.plan>*:not(.planph){margin-left:14px;margin-right:14px}
+.planph{height:96px;margin:0 0 10px}
+.plan ul:last-child{margin-bottom:14px}
+.trk{border-left:4px solid var(--accent)}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 <body>
@@ -1922,7 +1927,7 @@ function trackerPage(){
         + '<div><dt>Reference</dt><dd>'+esc(ref || "Not stated in the headline")+'</dd></div>'
         + '<div><dt>Previous requirement</dt><dd>Not established from the headline</dd></div>'
         + '<div><dt>Revised requirement</dt><dd>As worded above — open the document for details</dd></div>'
-        + '<div><dt>Applicable entities</dt><dd>'+esc(ents.length ? ents.join(", ") : "Not stated in the headline")+'</dd></div>'
+        + '<div><dt>Applicable entities</dt><dd>'+(ents.length ? ents.map(x => '<span class="chip2">'+esc(x)+'</span>').join(" ") : "Not stated in the headline")+'</dd></div>'
         + '<div><dt>Effective date</dt><dd>'+esc(eff || "Not stated in the headline")+'</dd></div>'
         + '<div><dt>Transitional provisions / action</dt><dd>Not stated — see the source</dd></div></dl>'
         + '<a class="chip" href="'+esc(safeUrl(c.lead.link))+'" target="_blank" rel="noopener noreferrer">Original source '+icon("i-ext")+'</a></article>'; }).join("");
@@ -2278,15 +2283,16 @@ async function hydratePhotos(){
 }
 /* ---- plans (suggested test prices; nothing is billed or gated) ---- */
 const PLAN_CARDS = [
-  { n:"Free", p:"₹0", d:"Build your audience", f:["Daily essential news","Today in 60 seconds","Standard topics","Live updates"] },
-  { n:"Premium", p:"₹99", d:"Everyday intelligent readers", f:["Personalised briefs","Audio intelligence","Deep explainers","AI questions"] },
-  { n:"Professional", p:"₹299", d:"CAs, bankers and finance professionals", f:["RBI, SEBI, ICAI intelligence","Regulatory impact notes","Compliance alerts","Everything in Premium"] },
-  { n:"Teams", p:"₹1,499", d:"Illustrative five-seat starter plan", f:["CA and audit firms","Shared intelligence","Team subscriptions","Professional alerts"] }
+  { n:"Free", tp:"world", p:"₹0", d:"Build your audience", f:["Daily essential news","Today in 60 seconds","Standard topics","Live updates"] },
+  { n:"Premium", tp:"science", p:"₹99", d:"Everyday intelligent readers", f:["Personalised briefs","Audio intelligence","Deep explainers","AI questions"] },
+  { n:"Professional", tp:"econ", p:"₹299", d:"CAs, bankers and finance professionals", f:["RBI, SEBI, ICAI intelligence","Regulatory impact notes","Compliance alerts","Everything in Premium"] },
+  { n:"Teams", tp:"law", p:"₹1,499", d:"Illustrative five-seat starter plan", f:["CA and audit firms","Shared intelligence","Team subscriptions","Professional alerts"] }
 ];
 function plansPage(){
+  setTimeout(hydrateTopics, 0);
   return '<div class="page-h"><h1>Plans</h1><button class="link" data-page="home">← Today</button></div>'
     + '<p class="muted small" role="note"><b>Suggested test prices, not validated market prices.</b> Billing is not live: everything in this app is free today, and nothing is locked. Paid features open only after a server verifies payment.</p>'
-    + '<div class="plans">'+PLAN_CARDS.map(x => '<section class="plan" aria-label="'+x.n+' plan"><h2>'+x.n+'</h2><div class="price">'+x.p+(x.p==="₹0" ? "" : ' <span>/month</span>')+'</div><p class="muted small">'+x.d+'</p><ul>'+x.f.map(f => '<li>'+f+'</li>').join("")+'</ul></section>').join("")+'</div>';
+    + '<div class="plans">'+PLAN_CARDS.map(x => '<section class="plan" aria-label="'+x.n+' plan"><div class="tph planph" data-tp="'+x.tp+'" data-alt=""><span class="tgrad"></span></div><h2>'+x.n+'</h2><div class="price">'+x.p+(x.p==="₹0" ? "" : ' <span>/month</span>')+'</div><p class="muted small">'+x.d+'</p><ul>'+x.f.map(f => '<li>'+f+'</li>').join("")+'</ul></section>').join("")+'</div>';
 }
 
 /* ---- story drawer: file-photo gallery (swipe) + fullscreen viewer ---- */
@@ -2368,6 +2374,39 @@ function landingBlock(){
   return '<section class="land cine"><div class="cbg" data-tp="world" data-alt="" aria-hidden="true"><span class="tgrad"></span></div><div class="cfg"><div class="ckick">Daily News Intelligence</div><h1>See more.<br>Know more.<br>Become more.</h1><p>Your daily briefing on the world, markets, technology and your profession — in minutes, with the pictures to go with it.</p>'
     + '<div class="landbtns"><button class="btn" data-v3="land-read">Explore today’s edition</button><button class="btn sec2" data-v3="land-desk">Professional intelligence</button></div></div></section>';
 }
+
+/* ================= v6: optional Google sign-in + preference sync (works only when GOOGLE_CLIENT_ID is set on the server) ================= */
+const SYNC_KEYS = ["news:saved","news:follow","news:followev","news:profile","news:mode","news:obl","news:watch","news:times","news:tz","news:away","news:onboard"];
+const acct = { cid:null, tok:null, email:null, name:null, ready:false, msg:"" };
+try{ const t = sessionStorage.getItem("ni:gtok"); if(t){ const p = JSON.parse(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); if(p.exp*1000 > Date.now()+60000){ acct.tok = t; acct.email = p.email; acct.name = p.name; } } }catch(e){}
+async function syncCfg(){ if(!/^https?:$/.test(location.protocol)) return null; try{ const r = await fetch("/api/sync?config=1"); if(!r.ok) return null; const j = await r.json(); return j.clientId || null; }catch(e){ return null; } }
+const localSnap = () => { const o = {}; SYNC_KEYS.forEach(k => { const v = store.get(k); if(v !== null && v !== undefined) o[k] = v; }); return o; };
+const uniq = a => [...new Set(a)];
+function mergeRemote(rem){
+  Object.keys(rem || {}).forEach(k => { if(!SYNC_KEYS.includes(k)) return; const loc = store.get(k), r = rem[k];
+    if(Array.isArray(r)) store.set(k, Array.isArray(loc) ? uniq(r.concat(loc)).slice(0, 500) : r);
+    else if(r && typeof r === "object") store.set(k, Object.assign({}, r, loc && typeof loc === "object" ? loc : {}));
+    else if(loc === null || loc === undefined) store.set(k, r); });
+}
+async function syncCall(method, body){ const r = await fetch("/api/sync", { method, headers:{ Authorization:"Bearer "+acct.tok, "Content-Type":"application/json" }, body: body ? JSON.stringify(body) : undefined }); if(r.status === 401){ acct.tok = null; try{ sessionStorage.removeItem("ni:gtok"); }catch(e){} throw new Error("Session expired — sign in again."); } if(!r.ok) throw new Error("Sync failed ("+r.status+")"); return r.json(); }
+async function syncNow(){ if(!acct.tok) return; acct.msg = "Syncing…"; paintAcct();
+  try{ const j = await syncCall("GET"); mergeRemote(j.data); await syncCall("PUT", localSnap()); acct.msg = "Synced just now."; }catch(e){ acct.msg = e.message; }
+  paintAcct(); }
+function onGoogle(resp){ try{ const p = JSON.parse(atob(resp.credential.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))); acct.tok = resp.credential; acct.email = p.email; acct.name = p.name; sessionStorage.setItem("ni:gtok", resp.credential); }catch(e){ return; } syncNow().then(() => { try{ renderContent(); }catch(e){} }); }
+function paintAcct(){ const box = document.getElementById("acct-box"); if(!box) return;
+  if(acct.tok){ box.innerHTML = '<p class="small">Signed in as <b>'+esc(acct.email || "")+'</b></p><p class="muted small" role="status">'+esc(acct.msg || "")+'</p><button class="btn sec2" data-v3="sync-now">Sync now</button> <button class="btn sec2" data-v3="sign-out">Sign out</button> <button class="btn sec2" data-v3="sync-del">Delete my cloud copy</button>'; return; }
+  box.innerHTML = '<div id="gbtn"></div><p class="muted small">Optional. Syncs saves, follows and preferences across your devices. Nothing else is stored, and the app works fully without it.</p>';
+  if(window.google && google.accounts && google.accounts.id){ google.accounts.id.initialize({ client_id:acct.cid, callback:onGoogle, auto_select:false }); google.accounts.id.renderButton(document.getElementById("gbtn"), { theme:"outline", size:"large", text:"signin_with" }); } }
+async function loadGIS(){ if(window.google && google.accounts) return true; return new Promise(res => { const s = document.createElement("script"); s.src = "https://accounts.google.com/gsi/client"; s.async = true; s.onload = () => res(true); s.onerror = () => res(false); document.head.appendChild(s); }); }
+const __os6 = openSettings;
+openSettings = function(){ __os6(); const body = document.querySelector(".setl"); if(!body) return; if(acct.ready && !acct.cid) return;
+  const d = document.createElement("div"); d.innerHTML = '<h3>Account &amp; sync</h3><div id="acct-box"><p class="muted small">Checking…</p></div>'; body.appendChild(d);
+  (async () => { if(!acct.ready){ acct.cid = await syncCfg(); acct.ready = true; } if(!acct.cid){ d.remove(); return; } if(!acct.tok) await loadGIS(); paintAcct(); })(); };
+document.addEventListener("click", async e => { const b = e.target.closest("[data-v3]"); if(!b) return; const a = b.dataset.v3;
+  if(a === "sync-now") syncNow();
+  else if(a === "sign-out"){ acct.tok = acct.email = null; try{ sessionStorage.removeItem("ni:gtok"); if(window.google && google.accounts) google.accounts.id.disableAutoSelect(); }catch(err){} acct.msg = ""; paintAcct(); }
+  else if(a === "sync-del"){ if(b.dataset.armed !== "1"){ b.dataset.armed = "1"; b.textContent = "Tap again to delete the cloud copy"; return; } try{ await syncCall("DELETE"); acct.msg = "Cloud copy deleted."; }catch(err){ acct.msg = err.message; } paintAcct(); } });
+addEventListener("pagehide", () => { if(acct.tok){ try{ fetch("/api/sync", { method:"PUT", keepalive:true, headers:{ Authorization:"Bearer "+acct.tok, "Content-Type":"application/json" }, body:JSON.stringify(localSnap()) }); }catch(e){} } });
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
