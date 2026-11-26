@@ -540,6 +540,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 .planph{height:96px;margin:0 0 10px}
 .plan ul:last-child{margin-bottom:14px}
 .trk{border-left:4px solid var(--accent)}
+.askbar{margin:0 0 10px}.aiwhy{margin:10px 0}.aiout{margin-top:8px}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 <body>
@@ -2407,6 +2408,27 @@ document.addEventListener("click", async e => { const b = e.target.closest("[dat
   else if(a === "sign-out"){ acct.tok = acct.email = null; try{ sessionStorage.removeItem("ni:gtok"); if(window.google && google.accounts) google.accounts.id.disableAutoSelect(); }catch(err){} acct.msg = ""; paintAcct(); }
   else if(a === "sync-del"){ if(b.dataset.armed !== "1"){ b.dataset.armed = "1"; b.textContent = "Tap again to delete the cloud copy"; return; } try{ await syncCall("DELETE"); acct.msg = "Cloud copy deleted."; }catch(err){ acct.msg = err.message; } paintAcct(); } });
 addEventListener("pagehide", () => { if(acct.tok){ try{ fetch("/api/sync", { method:"PUT", keepalive:true, headers:{ Authorization:"Bearer "+acct.tok, "Content-Type":"application/json" }, body:JSON.stringify(localSnap()) }); }catch(e){} } });
+
+/* ================= v7: AI "Why it matters" + "Ask the News" (free Gemini via /api/ask; only shown when the key is configured) ================= */
+let aiOn = false;
+(async () => { if(!/^https?:$/.test(location.protocol)) return; try{ const r = await fetch("/api/ask?config=1"); const j = r.ok ? await r.json() : null; if(j && j.enabled){ aiOn = true; try{ if(view.page==="home" || !view.page) renderContent(); }catch(e){} } }catch(e){} })();
+async function askAI(body){ const r = await fetch("/api/ask", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body) }); const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.error || "AI unavailable"); return j.text; }
+const aiNote = '<p class="muted small">AI-generated from publishers’ headlines only. It can be wrong and is not advice — open the sources to verify.</p>';
+const fmtAI = t => esc(t).replace(/\n+/g, "<br>").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+const __od7 = openDetail;
+openDetail = function(id){ __od7(id); const c = byId(id); if(!c || !aiOn) return; const b = document.querySelector(".drawer-b"), t = $("d-title"); if(!b || !t || b.querySelector(".aiwhy")) return;
+  const d = document.createElement("div"); d.className = "aiwhy"; d.innerHTML = '<button class="btn sec2" data-v3="ai-why:'+c.id+'">✨ Why it matters (AI)</button><div class="aiout" role="status" aria-live="polite"></div>'; (b.querySelector(".gal") || t).insertAdjacentElement("afterend", d); };
+const __tp7 = todayPage;
+todayPage = function(){ const h = __tp7(); return aiOn && isToday() ? '<div class="askbar"><button class="chip" data-v3="ai-open">✨ Ask the News</button></div>' + h : h; };
+document.addEventListener("click", async e => { const b = e.target.closest("[data-v3]"); if(!b) return; const a = b.dataset.v3;
+  if(a.startsWith("ai-why:")){ const c = byId(a.slice(7)); const out = b.parentNode.querySelector(".aiout"); if(!c || !out) return; b.disabled = true; out.innerHTML = '<p class="muted small">Thinking…</p>';
+    const hl = [...new Set((c.reports || []).map(r => r.title))].slice(0, 8); if(!hl.length) hl.push(c.lead.title);
+    try{ out.innerHTML = '<p>'+fmtAI(await askAI({ mode:"why", headlines:hl }))+'</p>'+aiNote; }catch(err){ out.innerHTML = '<p class="muted">'+esc(err.message)+'</p>'; } b.disabled = false; }
+  else if(a === "ai-open"){ const L = $("layer"); L.innerHTML = '<div class="scrim" id="dscrim"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="ai-t"><div class="drawer-h"><span class="kpi-note" style="margin:0">Ask the News</span><button class="iconbtn" id="dclose" aria-label="Close">✕</button></div><div class="drawer-b"><h2 id="ai-t">Ask about today’s news</h2><form id="ai-f"><label class="sr" for="ai-q">Your question</label><input id="ai-q" class="tfilter" type="text" maxlength="300" placeholder="e.g. What is happening with RBI today?" autocomplete="off"><button class="btn" type="submit" style="margin-top:8px">Ask</button></form><div id="ai-a" role="status" aria-live="polite"></div>'+aiNote+'</div></aside>'; setTimeout(() => { const q = $("ai-q"); if(q) q.focus(); }, 50); }
+});
+document.addEventListener("submit", async e => { if(e.target.id !== "ai-f") return; e.preventDefault(); const q = $("ai-q").value.trim(), out = $("ai-a"); if(q.length < 3) return; out.innerHTML = '<p class="muted small">Thinking…</p>';
+  const hl = ranked().slice(0, 30).map(c => c.lead.title);
+  try{ out.innerHTML = '<p>'+fmtAI(await askAI({ mode:"ask", headlines:hl, q }))+'</p>'; }catch(err){ out.innerHTML = '<p class="muted">'+esc(err.message)+'</p>'; } });
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
