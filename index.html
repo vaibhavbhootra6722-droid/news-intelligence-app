@@ -501,6 +501,35 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 #zoomwrap img{max-width:100%;max-height:80vh;object-fit:contain}
 #zoomwrap p{color:#d5d9e0;font-size:.8rem;margin:10px 0 0;text-align:center} #zoomwrap a{color:#8EAEFF}
 #zoomclose{position:absolute;top:12px;right:12px;color:#fff;min-width:44px;min-height:44px}
+/* ===== v5: visual layer ===== */
+.tgrad{position:absolute;inset:0;background:linear-gradient(135deg,var(--panel2),var(--panel))}
+.tph,.sth,.cbg{position:relative;overflow:hidden;background:var(--panel2)}
+.tph img,.sth img,.cbg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tph.has::after,.sth.has::after,.cbg.has::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.72))}
+.cr{position:absolute;right:6px;bottom:4px;z-index:2;font-size:.58rem;color:rgba(255,255,255,.8);max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:12px 0}
+@media(min-width:720px){.tiles{grid-template-columns:repeat(3,1fr)}}
+.tile{position:relative;border-radius:14px;overflow:hidden;background:var(--panel);display:flex;flex-direction:column;margin:0}
+.tile .tph{height:112px}
+.tile .tt{position:absolute;left:10px;right:10px;top:76px;margin:0;font-size:1rem;color:#fff;z-index:3;text-shadow:0 1px 6px rgba(0,0,0,.6);font-family:var(--serif)}
+.tile .topics{padding:8px 8px 6px;display:flex;flex-wrap:wrap;gap:4px;margin:0;list-style:none}
+.tile .topic{margin:0}
+.strip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 8px;margin:6px 0;list-style:none;-webkit-overflow-scrolling:touch}
+.strip li{flex:0 0 150px;scroll-snap-align:start}
+.stile{display:block;position:relative;width:100%;height:190px;border-radius:12px;overflow:hidden;text-align:left;color:#fff;background:var(--panel2);padding:0}
+.stile .sth{position:absolute;inset:0}
+.stile .sn{position:absolute;top:8px;left:8px;z-index:3;background:rgba(0,0,0,.55);border-radius:999px;width:22px;height:22px;display:grid;place-items:center;font-size:.72rem}
+.stile .stt{position:absolute;left:8px;right:8px;bottom:26px;z-index:3;font-size:.8rem;line-height:1.25;font-weight:600;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 4px rgba(0,0,0,.7)}
+.stile .sti{position:absolute;left:8px;bottom:8px;z-index:3;font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.stile:not(:has(.has)) .stt,.stile:not(:has(.has)) .sti{color:var(--ink);text-shadow:none}
+.land.cine{position:relative;border-radius:16px;overflow:hidden;min-height:340px;display:flex;align-items:flex-end;padding:0;margin:0 0 20px;background:#0a1020}
+.cine .cbg{position:absolute;inset:0;background:#0a1020}
+.cine .cfg{position:relative;z-index:3;padding:26px 20px;color:#fff;max-width:520px}
+.cine .cfg h1{color:#fff;font-size:2.3rem;line-height:1.08;margin:6px 0 10px}
+.cine .cfg p{color:rgba(255,255,255,.88)}
+.cine .ckick{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.cine .cr{z-index:3}
+.cine .cbg.has::after{background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.78))}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 <body>
@@ -1759,7 +1788,7 @@ function heroBlock(seen){
   const tts = "speechSynthesis" in window;
   return '<section class="sec hero" id="brief" aria-labelledby="hero-h"><div class="hero-top"><div><div class="when">'+esc(isToday() ? "Today" : niceDate(view.date))+'</div><h2 id="hero-h">'+title+'</h2></div>'+modeTabs()+'</div>'
     + '<p class="muted small" style="margin:0 0 6px">'+mins+' · '+b.events.length+' unique stories · '+nread+' of '+b.events.length+' read'+(tts ? ' · <span class="audio-slot">'+audioUI()+'</span>' : '')+' · <button class="linkbtn" data-page="deep">Deep dive →</button></p>'
-    + (b.events.length ? rows(b.events, { area:true, thumb:true }) : '<p class="muted">No significant stories loaded for this day yet.</p>')
+    + (b.events.length ? stripBlock(b.events) + rows(b.events, { area:true, thumb:true }) : '<p class="muted">No significant stories loaded for this day yet.</p>')
     + (b.short && b.events.length ? '<p class="muted small">A quieter day: this is a shorter briefing. Nothing was added to fill the time.</p>' : '')
     + '<p class="muted small">Headline-only: this app shows publishers’ own headlines and does not write summaries it cannot support.</p></section>';
 }
@@ -1803,7 +1832,7 @@ function livePreview(seen){
 function todayPage(){
   const seen = makeSeen(), today = isToday();
   const first = !store.get("news:onboard"), rt = routine();
-  const h = (first ? '<section class="land"><h1>Know what matters. In minutes.</h1><p>Your daily briefing on the world, markets, technology and your profession.</p><div class="landbtns"><button class="btn" data-v3="land-read">Read today’s briefing</button><button class="btn sec2" data-v3="land-desk">Explore professional intelligence</button></div></section>' : '')
+  const h = (first ? landingBlock() : '')
     + (first ? '' : '<div class="hello"><h1>'+(today ? greeting() : esc(niceDate(view.date)))+'</h1><p>'+(today ? "Here is what matters today." : "Here is what mattered on this day.")+'</p>'+(today ? '<p class="routine"><b>'+rt.t+'.</b> '+rt.d+'</p>' : '')+'</div>');
   const a = onboardCard();
   const leadC = ranked().find(c => !seen.has(c.id)); let leadH = ""; if(leadC){ seen.add(leadC.id); leadH = leadCard(leadC); }
@@ -2285,6 +2314,55 @@ document.addEventListener("click", e => { const b = e.target.closest('[data-v3="
   try{ const keys = []; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(/^news:|^ni:/.test(k)) keys.push(k); } keys.forEach(k => localStorage.removeItem(k)); sessionStorage.clear(); }catch(err){}
   try{ if(window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))); }catch(err){}
   location.hash = ""; location.reload(); }, true);
+
+/* ================= v5: visual layer — licensed topic photos (Wikimedia Commons), Explore tiles, 60-second tile strip, cinematic landing ================= */
+const TOPIC_Q = { world:"Blue Marble Earth NASA", india:"India Gate New Delhi", markets:"Bombay Stock Exchange building", tech:"Nvidia GPU chip", science:"Hubble Space Telescope nebula", space:"Apollo astronaut Moon NASA",
+  culture:"Holi festival India", sports:"Wankhede Stadium", travel:"Taj Mahal", health:"hospital doctor India", env:"Himalaya glacier", edu:"University of Delhi", law:"Supreme Court of India",
+  politics:"Parliament of India", ent:"Cannes Film Festival red carpet", econ:"Reserve Bank of India building", defence:"Indian Navy ship", infra:"Delhi Metro train", business:"Mumbai skyline", life:"Kerala backwaters" };
+const GROUP_TP = { india:"india", politics:"politics", govt:"politics", courts:"law", world:"world", business:"business", economy:"econ", corporate:"business", startups:"tech", auto:"infra", realestate:"business", markets:"markets",
+  tech:"tech", ai:"tech", science:"science", space:"space", defence:"defence", infra:"infra", health:"health", environment:"env", education:"edu", sports:"sports", cricket:"sports", football:"sports", tennis:"sports", othersports:"sports",
+  entertainment:"ent", bollywood:"ent", ott:"ent", life:"life", lifestyle:"life", travel:"travel", bfsi:"econ", state:"india" };
+const tpKey = g => GROUP_TP[g] || "world";
+async function topicPhoto(k){ const q = TOPIC_Q[k]; if(!q) return null; const r = await commonsSearch(q); return r && r[0] ? r[0] : null; }
+async function hydrateTopics(){
+  const els = [...document.querySelectorAll("[data-tp]")].filter(el => !el.classList.contains("has")), keys = [...new Set(els.map(e => e.dataset.tp))], got = {};
+  let i = 0; await Promise.all(Array.from({ length:4 }, async () => { while(i < keys.length){ const k = keys[i++]; got[k] = await topicPhoto(k); } }));
+  els.forEach(el => { const im = got[el.dataset.tp]; if(!im || el.classList.contains("has")) return;
+    el.innerHTML = '<img src="'+esc(im.url)+'" alt="'+esc(el.dataset.alt || im.alt)+'" loading="lazy" decoding="async" width="'+im.w+'" height="'+im.h+'">'
+      + (el.dataset.cr==="0" ? "" : '<a class="cr" href="'+esc(im.page || "https://commons.wikimedia.org")+'" target="_blank" rel="noopener noreferrer" title="Photo: '+esc(im.by)+' · '+esc(im.lic)+'">Photo: '+esc(im.by.slice(0,28))+' · '+esc(im.lic)+'</a>');
+    el.classList.add("has"); });
+}
+const __hp5 = hydratePhotos;
+hydratePhotos = async function(){ try{ await __hp5(); }finally{ await hydrateTopics(); } };
+
+/* Explore: image-led topic tiles (same topics, follow stars and filter still work) */
+function tileTopic(id){ const f = follows().includes(id);
+  return '<li class="topic" data-name="'+esc(catLabel(id).toLowerCase())+'"><button data-cat="'+id+'" class="tname">'+esc(catLabel(id))+'</button><button class="iconbtn star" data-v3="follow:'+id+'" aria-pressed="'+f+'" aria-label="'+(f ? "Unfollow " : "Follow ")+esc(catLabel(id))+'">'+(f ? "★" : "☆")+'</button></li>'; }
+function explorePage(){
+  const fl = follows(), st = stateName();
+  const tiles = EXPLORE.map(([g, ids]) => '<section class="tile grpsec" aria-label="'+esc(g)+'"><div class="tph" data-tp="'+tpKey(ids[0])+'" data-alt=""><span class="tgrad"></span></div><h2 class="tt">'+esc(g)+'</h2><ul class="topics">'+ids.map(tileTopic).join("")+'</ul></section>').join("");
+  setTimeout(hydrateTopics, 0);
+  return '<div class="page-h"><h1>Explore</h1></div>'
+    + '<div class="exp-tools"><button class="chip" data-page="archive">'+icon("i-cal")+' Calendar &amp; archive</button><button class="chip" data-page="timeline">'+icon("i-clock")+' Timeline</button><button class="chip" id="exp-search">'+icon("i-search")+' Search</button><button class="chip" data-page="bfsi">'+icon("i-bank")+' Watchlists</button></div>'
+    + '<label class="sr" for="tfilter">Filter topics</label><input id="tfilter" class="tfilter" type="search" placeholder="Find a topic" autocomplete="off">'
+    + (fl.length ? '<section class="sec" id="fol"><div class="sec-h"><h2>Following</h2></div><ul class="topics">'+fl.map((id,i) => topicBtn(id).replace('</li>', (i>0 ? '<button class="iconbtn up" data-v3="up:'+id+'" aria-label="Move up">▲</button>' : '')+'</li>')).join("")+'</ul></section>' : "")
+    + '<div class="tiles">'+tiles+'</div>'
+    + '<p class="muted small">Tile photos are licensed images from Wikimedia Commons, chosen for the topic. They illustrate a subject and are not photos of today’s events.</p>'
+    + '<section class="sec grpsec"><div class="sec-h"><h2>Banking &amp; Financial Services</h2></div><ul class="topics"><li class="topic" data-name="banking bfsi my desk"><button data-page="bfsi" class="tname">Open My Desk</button></li></ul></section>'
+    + '<section class="sec"><div class="sec-h"><h2>Local news</h2></div><label class="sr" for="state2">State</label><select id="state2" class="tfilter">'+$("state").innerHTML.replace('value="'+st+'"', 'value="'+st+'" selected')+'</select>'
+    + (st ? '<p style="margin-top:8px"><button class="chip" data-cat="state">Open '+esc(st)+' news</button></p>' : '')+'</section>';
+}
+/* Today: horizontal tile strip for the briefing (story photo when one exists, otherwise a labelled topic illustration) */
+function stripBlock(evs){
+  if(!evs.length) return "";
+  return '<ul class="strip" aria-label="Briefing stories">'+evs.slice(0, 8).map((c, i) => '<li><button class="stile" '+openAttr(c)+'><span class="sth" data-th="'+c.id+'" data-tp="'+tpKey(c.group)+'" data-cr="0" data-alt=""><span class="tgrad"></span></span><span class="sn">'+(i+1)+'</span><span class="stt">'+esc(c.lead.title)+'</span><span class="sti">'+esc(catShort(c.group))+'</span></button></li>').join("")+'</ul>'
+    + '<p class="muted small" style="margin:4px 0 8px">Tile photos come from Wikimedia Commons (licensed). Where no photo of the subject exists, a topic illustration is used. Open a story for credits.</p>';
+}
+/* Landing: cinematic first screen */
+function landingBlock(){
+  return '<section class="land cine"><div class="cbg" data-tp="world" data-alt="" aria-hidden="true"><span class="tgrad"></span></div><div class="cfg"><div class="ckick">Daily News Intelligence</div><h1>See more.<br>Know more.<br>Become more.</h1><p>Your daily briefing on the world, markets, technology and your profession — in minutes, with the pictures to go with it.</p>'
+    + '<div class="landbtns"><button class="btn" data-v3="land-read">Explore today’s edition</button><button class="btn sec2" data-v3="land-desk">Professional intelligence</button></div></div></section>';
+}
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
