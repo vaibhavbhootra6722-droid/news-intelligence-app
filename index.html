@@ -699,6 +699,10 @@ img,svg,video,canvas{max-width:100%}
 .mrow{list-style:none;margin:0;padding:0;display:grid;gap:6px}.mrow li{display:flex;gap:10px;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0}.mrow b{margin-left:auto}.up{color:var(--pos)}.dn{color:var(--neg)}
 .l1{padding:10px 12px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:8px}
 .nf18{display:flex;gap:8px;margin-top:6px}.nf18 input{flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink)}.note18{font-style:italic}
+.lsum{margin:6px 0 2px;color:var(--soft);font-size:.95rem;line-height:1.5;max-width:70ch}.lsum b{color:var(--ink)}
+.aisum{padding:10px 12px;border-left:3px solid var(--notice);background:var(--panel2);border-radius:8px;margin:10px 0}.aisum p{margin:4px 0}
+.leadimg{max-height:380px}
+@media (min-width:1000px){.lead:has(.leadimg:not([hidden])){display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:stretch}.lead:has(.leadimg:not([hidden])) .leadimg{height:100%;max-height:none;min-height:300px}.lead:has(.leadimg:not([hidden])) .leadbody{padding:28px;display:flex;flex-direction:column;justify-content:center}.leadhl{font-size:clamp(1.6rem,2.2vw,2.2rem)}}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 
@@ -809,9 +813,17 @@ const FEEDS = [
   { id:"f-ent",     label:"Entertainment",     q:'Bollywood OR film OR OTT OR Netflix OR celebrity', def:"entertainment" },
   { id:"f-health",  label:"Health & education",q:'health OR hospital OR education OR exam OR university', def:"health" },
   { id:"f-life",    label:"Climate & life",    q:'climate OR weather OR pollution OR travel OR lifestyle', def:"environment" },
+  { id:"f-nbfc",   label:"NBFC & lending",    q:'NBFC OR "housing finance" OR "digital lending" OR "master direction" OR "RBI circular" OR "credit rating" OR "gross NPA"', def:"business", tier:1 },
+  { id:"f-audit",  label:"Audit & accounting",q:'NFRA OR ICAI OR "statutory auditor" OR "audit report" OR "Ind AS" OR CARO OR "forensic audit" OR "auditor resigns"', def:"business", tier:1 },
+  { id:"f-reg",    label:"Regulators & tax",  q:'CBDT OR CBIC OR "GST Council" OR "SEBI circular" OR "SEBI order" OR MCA OR IBBI OR NCLT OR "tax notification"', def:"business", tier:1 },
+  { id:"f-ai",     label:"AI & builders",     q:'Anthropic OR OpenAI OR Gemini OR "AI agent" OR LLM OR "AI startup" OR "open-source model"', ed:"GB", def:"tech", tier:1 },
+  { id:"f-mumbai", label:"Mumbai & Maharashtra", q:'Mumbai OR BMC OR "Mumbai local" OR Maharashtra', def:"india" },
+  { id:"f-fit",    label:"Fitness & wellbeing",q:'fitness OR "strength training" OR nutrition OR protein OR sleep OR longevity', ed:"GB", def:"health" },
+  { id:"f-glob",   label:"Global markets",    q:'"Federal Reserve" OR "oil prices" OR "global markets" OR "US economy" OR gold OR "dollar index"', ed:"GB", def:"economy", tier:1 },
+  { id:"f-startup",label:"Startups & funding",q:'"Indian startup" OR "funding round" OR SaaS OR unicorn OR IPO', def:"business" },
 ];
 // Feeds that were added in this version. Cached days saved before it lack them, so they are marked "not loaded" and can be retried.
-const NEW_FEED_IDS = ["f-live","f-bfsi","f-tax"];
+const NEW_FEED_IDS = ["f-live","f-bfsi","f-tax","f-nbfc","f-audit","f-reg","f-ai","f-mumbai","f-fit","f-glob","f-startup"];
 // Optional direct regulator feeds (OFF by default; they need a relay that allows these hosts and the URLs below were NOT verified from the build environment).
 const OFFICIAL_FEEDS = [
   { id:"o-rbi",  label:"RBI press releases", url:"https://www.rbi.org.in/pressreleases_rss.xml", source:"Reserve Bank of India", def:"bfsi", tier:2, official:true },
@@ -3015,7 +3027,7 @@ function rmCard(){
   const c = rm.list[rm.i], n = rm.list.length, saved = (store.get("news:saved")||[]).some(x => x.link===c.lead.link);
   const top = c.reports.slice().sort((a,b) => a.ts-b.ts)[0];
   $("layer").innerHTML = '<div class="rmwrap" role="dialog" aria-modal="true" aria-label="Reading mode"><div class="rmh"><button class="iconbtn" data-v14="rmclose" id="rmclose" aria-label="Close reading mode">'+icon("i-x")+'</button><span class="rmp" aria-live="polite">'+(rm.i+1)+' of '+n+'</span><div class="rmbar" role="progressbar" aria-valuemin="1" aria-valuemax="'+n+'" aria-valuenow="'+(rm.i+1)+'"><i style="width:'+Math.round((rm.i+1)/n*100)+'%"></i></div></div>'
-    + '<article class="rmc"><p class="kpi-note">'+esc(catLabel(c.group))+' · '+fmtTime(c.first)+' IST</p><h2>'+esc(c.lead.title)+'</h2><p class="muted">Reported by '+c.indep+' independent outlet'+(c.indep===1 ? "" : "s")+', first by '+esc(top.source)+'.</p></article>'
+    + '<article class="rmc"><p class="kpi-note">'+esc(catLabel(c.group))+' · '+fmtTime(c.first)+' IST</p><h2>'+esc(c.lead.title)+'</h2>'+(sumFor(c) ? '<p>'+esc(sumFor(c).w)+'</p>'+(sumFor(c).y && !/^Not clear/.test(sumFor(c).y) ? '<p><b>Why it matters:</b> '+esc(sumFor(c).y)+'</p>' : '') : '')+'<p class="muted">Reported by '+c.indep+' independent outlet'+(c.indep===1 ? "" : "s")+', first by '+esc(top.source)+'.</p></article>'
     + '<div class="rmf"><button class="btn sec2" data-v14="rmprev"'+(rm.i===0 ? " disabled" : "")+'>Back</button><button class="chip" data-v14="rmsave" aria-pressed="'+saved+'">'+icon("i-bm")+' '+(saved ? "Saved" : "Save")+'</button><button class="chip" data-v14="rmcov">Coverage</button>'+(audioSupported() ? '<button class="chip" data-v14="rmlisten">Listen</button>' : '')
     + (rm.i < n-1 ? '<button class="btn" data-v14="rmnext">Next</button>' : '<button class="btn" data-v14="quiz">Check what you learned</button>')+'</div></div>';
   markRead(c.id);
@@ -3066,7 +3078,7 @@ document.addEventListener("keydown", ev => { if(!rm.on) return; if(ev.key==="Esc
 /* narration must never outlive its edition */
 const __rc14 = renderContent;
 renderContent = function(){ if(rm.on && rm.date !== view.date){ rm.on = false; $("layer").innerHTML = ""; } if(typeof audio !== "undefined" && audio.on && audio.date && audio.date !== view.date) stopAudio();
-  __rc14(); if(view.page==="home" && view.date && view.clusters.length && !document.querySelector("#content .rmbtn")){ const h = document.querySelector("#content .hello, #content .brief, #content section"); if(h) h.insertAdjacentHTML("beforebegin", '<p class="rmrow"><button class="chip rmbtn" data-v14="rm">'+icon("i-bm")+' Reading mode</button> <button class="chip" data-v14="quiz">Check what you learned</button></p>'); } };
+  __rc14(); if(view.page==="home" && view.date && view.clusters.length && !document.querySelector("#content .rmbtn")){ const h = document.querySelector("#content .hello, #content .brief, #content section"); if(h) h.insertAdjacentHTML("beforebegin", '<p class="rmrow"><button class="chip rmbtn" data-v14="rm">'+icon("i-bm")+' Reading mode</button></p>'); } };
 /* a save click records the story id so it can reopen in-app later */
 document.addEventListener("click", ev => { const b = ev.target.closest('[data-v3^="save:"]'); if(!b) return; setTimeout(() => { const s = store.get("news:saved") || [], c = byId(b.dataset.v3.slice(5)); if(c && s[0] && s[0].link===c.lead.link && !s[0].id){ s[0].id = c.id; store.set("news:saved", s); } }, 0); });
 
@@ -3267,7 +3279,7 @@ function onboardCard(){
   if(store.get("news:onboard")) return "";
   const fl = follows(), role = store.get("news:role"), goal = store.get("news:goal"), mk = modeKey(), tm = (store.get("news:times") || {}).morning || "";
   const chip = (act, on, t) => '<button class="chip'+(on ? " on" : "")+'" data-v17="'+act+'" aria-pressed="'+on+'">'+t+'</button>';
-  return '<section class="sec ob" aria-label="Personalise"><div><b>Make it yours</b> <span class="muted">— every question is optional and editable later</span></div>'
+  return '<section class="sec ob" aria-label="Personalise"><div><b>Make it yours</b> <span class="muted">— every question is optional and editable later</span></div><p><button class="btn" data-v17="preset">One tap: set up for a CA in BFSI audit who builds with AI</button></p>'
     + '<div class="obrow"><span>Interests</span>'+OB_TOPICS.map(([k, l]) => chip("oi:"+k, fl.includes(k), l)).join("")+'</div>'
     + '<div class="obrow"><span>What you do</span>'+OB_ROLES.map(([k, l]) => chip("or:"+k, role===k, l)).join("")+'</div>'
     + '<div class="obrow"><span>What matters most</span>'+OB_GOALS.map(([k, l]) => chip("og:"+k, goal===k, l)).join("")+'</div>'
@@ -3282,6 +3294,7 @@ document.addEventListener("click", ev => { const b = ev.target.closest("[data-v1
   else if(k==="or"){ store.set("news:role", a); store.set("news:profile", ROLE_PROFILE[a] || "general"); view.rk = null; renderContent(); }
   else if(k==="og"){ store.set("news:goal", a); renderContent(); }
   else if(k==="ot"){ store.set("news:mode", a); renderContent(); }
+  else if(k==="preset"){ store.set("news:follow", ["bfsi","business","markets","economy","tech","ai","india"]); store.set("news:watch", ["RBI","SEBI","NFRA","ICAI","NBFC","Ind AS","CARO","master direction","digital lending","housing finance","IRDAI","CBDT","GST","Anthropic","OpenAI","Gemini","Mumbai"]); store.set("news:role","ca"); store.set("news:profile","ca"); store.set("news:mode","300"); store.set("news:goal","regulatory"); store.set("news:onboard",1); view.rk = null; renderContent(); }
   else if(k==="obdone" || k==="obskip"){ store.set("news:onboard", 1); renderContent(); }
   else if(k==="reset"){ ["news:follow","news:role","news:goal","news:onboard","news:times"].forEach(x => store.del(x)); store.set("news:profile", "general"); view.rk = null; closeSearch(); render(); }
   else if(k==="fs"){ store.set("news:fs", a); applyFs(); const l = document.querySelectorAll("[data-v17^='fs:']"); l.forEach(x => x.setAttribute("aria-pressed", String(x===b))); }
@@ -3382,6 +3395,24 @@ document.addEventListener("click", ev => { const b = ev.target.closest("[data-v1
   else if(k==="note"){ const s = store.get("news:saved") || [], x = s[+a]; if(!x) return; const cur = notes18()[x.link] || ""; const row = b.closest(".row"); if(row.querySelector(".nf18")) return; b.closest(".cap").insertAdjacentHTML("afterend", '<form class="nf18" data-l="'+esc(x.link)+'"><label class="sr" for="nt'+a+'">Note</label><input id="nt'+a+'" maxlength="280" value="'+esc(cur)+'"><button class="btn" type="submit">Save note</button></form>'); const i = row.querySelector(".nf18 input"); if(i) i.focus(); }
 });
 document.addEventListener("submit", ev => { const f = ev.target.closest(".nf18"); if(!f) return; ev.preventDefault(); const N = notes18(), v = f.querySelector("input").value.trim(); if(v) N[f.dataset.l] = v; else delete N[f.dataset.l]; store.set("news:notes", N); renderContent(); });
+
+/* ===== v19: AI summaries (from the Action's summaries.json; optional) ===== */
+const SU_URL = "https://raw.githubusercontent.com/vaibhavbhootra6722-droid/news-intelligence-app/data/summaries.json";
+const su19 = { map:null, state:"idle", generated:null };
+function suLoad(){
+  if(su19.state!=="idle") return; su19.state = "loading";
+  try{ const c = JSON.parse(localStorage.getItem("news:su") || "null"); if(c && c.map){ su19.map = c.map; su19.generated = c.generated; } }catch(e){}
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 6000);
+  fetch(SU_URL, { signal:ctl.signal, cache:"no-cache" }).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }).then(j => { if(j && j.map){ su19.map = j.map; su19.generated = j.generated; su19.state = "ok"; try{ localStorage.setItem("news:su", JSON.stringify({ map:j.map, generated:j.generated })); }catch(e){} } else su19.state = "none"; })
+    .catch(() => { su19.state = su19.map ? "ok" : "none"; }).finally(() => { clearTimeout(tm); if(su19.map && view.page==="home" && !document.querySelector(".drawer, .rmwrap")) renderContent(); });
+}
+function sumFor(c){ if(!su19.map || !c || !c.reports) return null; for(const r of c.reports){ const s = su19.map[r.link]; if(s) return s; } return null; }
+const __lc19 = leadCard;
+leadCard = function(c){ suLoad(); let h = __lc19(c); const s = sumFor(c); if(s && s.w) h = h.replace('<div class="leadmeta">', '<p class="lsum"><b>What happened:</b> '+esc(s.w)+(s.y && !/^Not clear/.test(s.y) ? ' <b>Why it matters:</b> '+esc(s.y) : '')+'</p><div class="leadmeta">'); return h; };
+const __od19 = openDetail;
+openDetail = function(id){ suLoad(); __od19(id); const c = byId(id), b = document.querySelector(".drawer-b"), s = sumFor(c); if(!c || !b || !s || b.querySelector(".aisum")) return; const a = b.querySelector(".l1") || b.querySelector("h2");
+  if(a) a.insertAdjacentHTML("afterend", '<div class="aisum"><p><b>What happened.</b> '+esc(s.w)+'</p>'+(s.y ? '<p><b>Why it matters.</b> '+esc(s.y)+'</p>' : '')+'<p class="muted small">AI summary written only from the headlines below (may be imperfect). Open the sources to confirm.</p></div>'); };
+suLoad();
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
