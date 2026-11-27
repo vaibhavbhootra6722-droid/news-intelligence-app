@@ -632,6 +632,8 @@ img,svg,video,canvas{max-width:100%}
 }
 /* bottom nav and sticky bars respect the notch / gesture bar */
 .tabbar,.bnav,nav.tabs{padding-bottom:env(safe-area-inset-bottom,0)}
+/* phone menu: the open drawer must sit ABOVE its dimming layer so its buttons receive taps */
+@media (max-width:767px){body.navopen .side{z-index:70;visibility:visible}.scrim{z-index:60}}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 <body>
