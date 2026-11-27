@@ -603,8 +603,8 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 /* Netlify's injected badge: keep it, but make it tiny and quiet */
 #nl-badge-frame{transform:scale(.42)!important;transform-origin:bottom right!important;opacity:.45!important;right:2px!important;bottom:2px!important;pointer-events:auto}
 @media (min-width:900px){.leadimg .fig img{max-height:48vh;width:100%;object-fit:cover}}
-</style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
+
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
@@ -2682,6 +2682,19 @@ function setDate(d){
 const onDayOf = d => x => istDate(new Date(x.ts))===d && x.ts <= Date.now() + 10*60e3;
 // Runs feeds tier by tier (core first) with a small worker pool. onFeed fires after every section.
 async function runBatch(feeds, d, signal, onFeed){
+  if(/\.github\.io$/.test(location.hostname)){
+    try{
+      const bu = "https://raw.githubusercontent.com/" + (location.hostname.split(".")[0]) + "/" + (location.pathname.split("/")[1] || "") + "/data/bundle.json";
+      const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 6000);
+      const res = await fetch(bu, { signal: ctl.signal, cache:"no-cache" }); clearTimeout(tm);
+      if(res.ok){
+        const j = await res.json(), urls = feeds.map(f => feedUrl(f, d)), out = [], done = new Set();
+        (j.items||[]).forEach(it => { const f = feeds[urls.indexOf(it.url)];
+          if(f && it.ok && typeof it.body==="string"){ try{ const got = parseFeed({ body:it.body }, f.id, f); out.push(...got); done.add(f.id); onFeed(f, "ok", got); }catch(e){} } });
+        if(done.size >= Math.min(5, feeds.length)) return { out, done };
+      }
+    }catch(e){}
+  }
   let relay = store.get("news:relay"), same = false;
   if(!relay || !/\?url=$/.test(relay)){ relay = null; try{ if(/^https?:$/.test(location.protocol) && !sessionStorage.getItem("ni:nobatch")){ relay = "/api/rss?url="; same = true; } }catch(e){} }
   if(!relay || feeds.length<2) return null;
@@ -3025,4 +3038,5 @@ window.NI = { view, ranked, rankCtx, auditEvents, eventsFor, groupCounts, classi
 
 </script>
 <script>if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script></body>
+</body>
 </html>
