@@ -603,6 +603,35 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 /* Netlify's injected badge: keep it, but make it tiny and quiet */
 #nl-badge-frame{transform:scale(.42)!important;transform-origin:bottom right!important;opacity:.45!important;right:2px!important;bottom:2px!important;pointer-events:auto}
 @media (min-width:900px){.leadimg .fig img{max-height:48vh;width:100%;object-fit:cover}}
+/* ===== v12: strict responsive layout — never wider than the screen, one rule set from 320 px phones to 4K laptops ===== */
+html,body{max-width:100%;overflow-x:clip}
+img,svg,video,canvas{max-width:100%}
+.main,.content,.rows,.feed,.row,.rowmain,.crow,.crowb,.big,.bigb,.lead,.tile,.tiles>*,.top>*,.acts{min-width:0}
+.hl,.stt,.tt{overflow-wrap:anywhere}
+/* lists: auto-fit columns on any width, never narrower than the screen allows */
+.rows,.feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:10px 14px;align-items:start;padding-left:0}
+.feed>.big{grid-column:1/-1}.rows>li,.feed>li{margin:0;min-width:0}
+.rows>.row{width:100%}
+/* horizontal scrollers stay inside their box */
+.strip,.catbar,.chips,.tabs{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.strip::-webkit-scrollbar,.catbar::-webkit-scrollbar{display:none}
+/* top bar: icons shrink instead of pushing the page wider */
+.top{min-width:0}.top .acts{flex:0 1 auto}
+@media (max-width:420px){
+  .iconbtn{width:36px;height:36px}.top{padding-left:6px;padding-right:6px}.acts{gap:0}
+  .content{padding-left:12px;padding-right:12px}
+}
+@media (max-width:340px){.hide-m{display:none!important}}
+/* big lead cards: sensible height everywhere */
+.bigb{height:clamp(220px,44vw,380px)}
+.banner{height:clamp(130px,26vw,220px)}
+@media (min-width:1500px){
+  .rows,.feed{grid-template-columns:repeat(auto-fill,minmax(400px,1fr))}
+  .content{padding-left:clamp(40px,3vw,72px);padding-right:clamp(40px,3vw,72px)}
+  .tiles{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+}
+/* bottom nav and sticky bars respect the notch / gesture bar */
+.tabbar,.bnav,nav.tabs{padding-bottom:env(safe-area-inset-bottom,0)}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 <body>
