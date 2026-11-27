@@ -45,7 +45,8 @@ async function holidays() {
           start: null, localDate: h.date, localTime: null, doors: null, end: null, precision: "date", status: "scheduled", lat: null, lon: null, url: null, verified: true, provenance: "Nager.Date public holidays (observance, date only)", checked: iso(NOW), image: null }); ok.add(cc); }
     } catch (err) { console.error("nager", cc, y, err.message); }
   }
-  if (ok.size) { coverage.sources.push("Nager.Date public holidays"); coverage.note += "Holidays and festivals are national observances with a date only; regional festival dates can differ. "; }
+  const missing = ccs.filter(c => !ok.has(c)); if (missing.length) coverage.note += `No holiday data is available from this free source for ${missing.join(", ")}${missing.includes("IN") ? " (India's festival calendar needs a licensed or curated source)" : ""}. `;
+  if (ok.size) { coverage.sources.push("Nager.Date public holidays"); ok.forEach(c => coverage.countries.push(c)); coverage.note += "Holidays and festivals are national observances with a date only; regional festival dates can differ. "; }
 }
 await Promise.all([ticketmaster(), holidays()]);
 // de-duplicate: same performer + venue + local date from different sources keeps the first (Ticketmaster before holidays)

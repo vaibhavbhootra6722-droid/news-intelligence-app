@@ -2828,7 +2828,7 @@ function eventsView(){
   list.sort((a,b) => ((evStart(a) != null ? evStart(a) : (evDayWindow(a)||[9e15])[0]) - (evStart(b) != null ? evStart(b) : (evDayWindow(b)||[9e15])[0])));
   const total = list.length; list = list.slice(0, 60);
   const cov = d && d.coverage ? d.coverage : null;
-  const covTxt = cov ? 'Sources: '+(cov.sources.length ? cov.sources.map(esc).join(", ") : "none connected")+(cov.countries && cov.countries.length ? '. Ticketed listings cover: '+cov.countries.map(esc).join(", ") : '')+'. '+esc(cov.note || "") : "";
+  const covTxt = cov ? 'Sources: '+(cov.sources.length ? cov.sources.map(esc).join(", ") : "none connected")+(cov.countries && cov.countries.length ? '. Regions with listings: '+cov.countries.map(esc).join(", ") : '')+'. '+esc(cov.note || "") : "";
   let body;
   if(evx.state==="loading" && !d) body = '<p class="muted" role="status">Loading scheduled events…</p>';
   else if(evx.state==="unavailable" && !d) body = '<div class="empty"><b>Events data is unavailable right now.</b>The scheduled event feed could not be reached ('+esc(evx.err)+'). Breaking coverage still works.<div style="margin-top:12px"><button class="btn sec2" data-v12="evreload">Try again</button></div></div>';
