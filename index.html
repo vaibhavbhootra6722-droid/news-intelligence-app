@@ -2584,6 +2584,26 @@ commonsSearch = async function(q){
   return __cs10(q);
 };
 
+/* v10c: varied topic photos — every topic has a pool of licensed photos; each story picks a different one (no repeats on a page while the pool lasts) */
+const TOPIC_ALT = {"world": ["United Nations headquarters New York", "International Space Station Earth", "European Parliament Strasbourg"], "india": ["Red Fort Delhi", "Gateway of India Mumbai", "Rashtrapati Bhavan"], "markets": ["National Stock Exchange of India", "Dalal Street Mumbai", "stock exchange trading floor"], "tech": ["data center servers", "semiconductor wafer", "smartphone"], "science": ["ISRO rocket launch", "laboratory scientist", "James Webb Space Telescope"], "space": ["Chandrayaan", "International Space Station", "Falcon 9 launch"], "culture": ["Diwali celebration", "Durga Puja Kolkata", "Kumbh Mela"], "sports": ["Eden Gardens", "cricket match stadium", "football match stadium"], "travel": ["Goa beach", "Hawa Mahal Jaipur", "Vande Bharat Express"], "health": ["hospital ward", "vaccination", "doctor stethoscope"], "env": ["flood India monsoon", "smog Delhi", "solar farm"], "edu": ["IIT Bombay", "school classroom India", "university library"], "law": ["High Court India", "Bombay High Court", "gavel court"], "politics": ["Lok Sabha", "election voting India", "Vidhan Soudha"], "ent": ["Bollywood film shoot", "Film City Mumbai", "cinema theatre"], "econ": ["Reserve Bank of India Mumbai", "Indian rupee banknotes", "budget Parliament India"], "defence": ["Indian Army soldiers", "Indian Air Force fighter jet", "DRDO missile"], "infra": ["expressway India", "Mumbai Metro", "bridge construction India"], "business": ["Bandra Kurla Complex", "factory manufacturing India", "Tata headquarters"], "life": ["Indian street market", "yoga", "Indian thali food"]};
+async function topicPool(k){
+  const qs = [TOPIC_Q[k]].concat(TOPIC_ALT[k] || []).filter(Boolean), res = await Promise.all(qs.map(q => commonsSearch(q).catch(() => [])));
+  const seen = new Set(), pool = []; res.forEach(r => (r || []).slice(0, 2).forEach(x => { if(!seen.has(x.url)){ seen.add(x.url); pool.push(x); } })); return pool;
+}
+async function hydrateTopics(){
+  const els = [...document.querySelectorAll("[data-tp]")].filter(el => !el.classList.contains("has")), keys = [...new Set(els.map(e => e.dataset.tp))], pools = {};
+  let i = 0; await Promise.all(Array.from({ length:4 }, async () => { while(i < keys.length){ const k = keys[i++]; pools[k] = await topicPool(k); } }));
+  const used = new Set(), nth = {};
+  els.forEach(el => { const k = el.dataset.tp, pool = pools[k]; if(!pool || !pool.length || el.classList.contains("has")) return;
+    let n = nth[k] || 0, im = null;
+    for(let t = 0; t < pool.length; t++){ const c = pool[(n + t) % pool.length]; if(!used.has(c.url)){ im = c; n = n + t + 1; break; } }
+    if(!im){ im = pool[n % pool.length]; n++; } nth[k] = n; used.add(im.url);
+    const g = el.querySelector(".tgrad"); if(g) g.remove();
+    el.insertAdjacentHTML("afterbegin", '<img src="'+esc(im.url)+'" alt="'+esc(el.dataset.alt || im.alt)+'" loading="lazy" decoding="async" width="'+im.w+'" height="'+im.h+'">'
+      + (el.dataset.cr==="0" ? "" : '<a class="cr" href="'+esc(im.page || "https://commons.wikimedia.org")+'" target="_blank" rel="noopener noreferrer" title="Photo: '+esc(im.by)+' · '+esc(im.lic)+'">Photo: '+esc(im.by.slice(0,28))+' · '+esc(im.lic)+'</a>'));
+    el.classList.add("has"); });
+}
+
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
 function renderSoon(){ if(!rTimer) rTimer = setTimeout(() => { rTimer = null; render(); }, 280); }

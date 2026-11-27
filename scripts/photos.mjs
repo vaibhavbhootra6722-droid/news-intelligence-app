@@ -1,6 +1,6 @@
 // Prebuilds licensed topic photos from Wikimedia Commons (same filters as the app) -> out/photos.json keyed by search query.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-const Q = Object.values(JSON.parse(readFileSync(new URL("./photo-queries.json", import.meta.url), "utf8")));
+const Q = Object.values(JSON.parse(readFileSync(new URL("./photo-queries.json", import.meta.url), "utf8"))).flat();
 const OK = /^(cc0|public domain|pd[- ]|cc[- ]by(?![- ]?(nc|nd))(?:[- ]sa)?)/i;
 const BAD = /logo|flag|map of|\bmap\b|diagram|coat of arms|emblem|stamp|signature|poster|screenshot|banner|icon|chart|graph|seal of|wordmark|\.svg|\.gif|\.pdf|\.tif|\.ogg|\.webm/i;
 const nrm = s => String(s || "").toLowerCase().replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/g, " ").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -23,7 +23,7 @@ async function one(q) {
     return [q, res];
   } catch (e) { return [q, []]; }
 }
-const out = Object.fromEntries(await Promise.all(Q.map(one)));
+const out = {}; for (let i = 0; i < Q.length; i += 6) (await Promise.all(Q.slice(i, i + 6).map(one))).forEach(([q, r]) => out[q] = r);
 const n = Object.values(out).filter(a => a.length).length; console.log("photo queries with results", n, "/", Q.length);
 if (n < 5) process.exit(1);
 mkdirSync("out", { recursive: true }); writeFileSync("out/photos.json", JSON.stringify(out));

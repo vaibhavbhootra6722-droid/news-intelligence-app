@@ -1,22 +1,122 @@
 {
- "world": "Blue Marble Earth NASA",
- "india": "India Gate New Delhi",
- "markets": "Bombay Stock Exchange building",
- "tech": "Nvidia GPU chip",
- "science": "Hubble Space Telescope nebula",
- "space": "Apollo astronaut Moon NASA",
- "culture": "Holi festival India",
- "sports": "Wankhede Stadium",
- "travel": "Taj Mahal",
- "health": "hospital doctor India",
- "env": "Himalaya glacier",
- "edu": "University of Delhi",
- "law": "Supreme Court of India",
- "politics": "Parliament of India",
- "ent": "Cannes Film Festival red carpet",
- "econ": "Reserve Bank of India building",
- "defence": "Indian Navy ship",
- "infra": "Delhi Metro train",
- "business": "Mumbai skyline",
- "life": "Kerala backwaters"
+ "world": [
+  "Blue Marble Earth NASA",
+  "United Nations headquarters New York",
+  "International Space Station Earth",
+  "European Parliament Strasbourg"
+ ],
+ "india": [
+  "India Gate New Delhi",
+  "Red Fort Delhi",
+  "Gateway of India Mumbai",
+  "Rashtrapati Bhavan"
+ ],
+ "markets": [
+  "Bombay Stock Exchange building",
+  "National Stock Exchange of India",
+  "Dalal Street Mumbai",
+  "stock exchange trading floor"
+ ],
+ "tech": [
+  "Nvidia GPU chip",
+  "data center servers",
+  "semiconductor wafer",
+  "smartphone"
+ ],
+ "science": [
+  "Hubble Space Telescope nebula",
+  "ISRO rocket launch",
+  "laboratory scientist",
+  "James Webb Space Telescope"
+ ],
+ "space": [
+  "Apollo astronaut Moon NASA",
+  "Chandrayaan",
+  "International Space Station",
+  "Falcon 9 launch"
+ ],
+ "culture": [
+  "Holi festival India",
+  "Diwali celebration",
+  "Durga Puja Kolkata",
+  "Kumbh Mela"
+ ],
+ "sports": [
+  "Wankhede Stadium",
+  "Eden Gardens",
+  "cricket match stadium",
+  "football match stadium"
+ ],
+ "travel": [
+  "Taj Mahal",
+  "Goa beach",
+  "Hawa Mahal Jaipur",
+  "Vande Bharat Express"
+ ],
+ "health": [
+  "hospital doctor India",
+  "hospital ward",
+  "vaccination",
+  "doctor stethoscope"
+ ],
+ "env": [
+  "Himalaya glacier",
+  "flood India monsoon",
+  "smog Delhi",
+  "solar farm"
+ ],
+ "edu": [
+  "University of Delhi",
+  "IIT Bombay",
+  "school classroom India",
+  "university library"
+ ],
+ "law": [
+  "Supreme Court of India",
+  "High Court India",
+  "Bombay High Court",
+  "gavel court"
+ ],
+ "politics": [
+  "Parliament of India",
+  "Lok Sabha",
+  "election voting India",
+  "Vidhan Soudha"
+ ],
+ "ent": [
+  "Cannes Film Festival red carpet",
+  "Bollywood film shoot",
+  "Film City Mumbai",
+  "cinema theatre"
+ ],
+ "econ": [
+  "Reserve Bank of India building",
+  "Reserve Bank of India Mumbai",
+  "Indian rupee banknotes",
+  "budget Parliament India"
+ ],
+ "defence": [
+  "Indian Navy ship",
+  "Indian Army soldiers",
+  "Indian Air Force fighter jet",
+  "DRDO missile"
+ ],
+ "infra": [
+  "Delhi Metro train",
+  "expressway India",
+  "Mumbai Metro",
+  "bridge construction India"
+ ],
+ "business": [
+  "Mumbai skyline",
+  "Bandra Kurla Complex",
+  "factory manufacturing India",
+  "Tata headquarters"
+ ],
+ "life": [
+  "Kerala backwaters",
+  "Indian street market",
+  "yoga",
+  "Indian thali food"
+ ]
 }
