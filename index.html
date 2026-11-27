@@ -556,7 +556,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 .rows>li:nth-child(2){animation-delay:.05s}.rows>li:nth-child(3){animation-delay:.1s}.rows>li:nth-child(4){animation-delay:.15s}.rows>li:nth-child(n+5){animation-delay:.2s}
 .strip>li:nth-child(2){animation-delay:.06s}.strip>li:nth-child(3){animation-delay:.12s}.strip>li:nth-child(4){animation-delay:.18s}.strip>li:nth-child(n+5){animation-delay:.24s}
 .tiles>.tile:nth-child(2){animation-delay:.05s}.tiles>.tile:nth-child(3){animation-delay:.1s}.tiles>.tile:nth-child(4){animation-delay:.15s}.tiles>.tile:nth-child(n+5){animation-delay:.2s}
-.tph.has img,.sth.has img,.th.has img,.cbg.has img{animation:fadein .8s cubic-bezier(.2,.7,.2,1) both}
+.tph.has img,.sth.has img,.th.has img,.cbg.has img{animation:fadein .3s ease both}
 .tph:not(.has) .tgrad,.sth:not(.has) .tgrad{background:linear-gradient(90deg,var(--panel2) 20%,var(--panel) 50%,var(--panel2) 80%);background-size:200% 100%;animation:shimmer 1.5s linear infinite}
 .drawer{animation:drawin .32s cubic-bezier(.2,.7,.2,1) both}.scrim,.dscrim{animation:scrimin .25s ease both}
 .tph img,.sth img,.th img{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
@@ -2268,6 +2268,8 @@ function deepPage(){
 }
 
 /* ================= v4: photo layer (Wikimedia Commons, licensed only), lead card, visual stories, plans ================= */
+const szu = (u, w) => String(u).replace(/\/(\d+)px-/, "/"+w+"px-");
+const szFor = el => el.classList.contains("cbg") ? 960 : (el.classList.contains("th") || el.classList.contains("timg") ? 330 : 500);
 const IMG_TTL = 7*864e5, IMG_KEY = "news:img2";
 const IMG_OK_LIC = /^(cc0|public domain|pd[- ]|cc[- ]by(?![- ]?(nc|nd))(?:[- ]sa)?)/i;
 const IMG_BAD_TITLE = /logo|flag|map of|\bmap\b|diagram|coat of arms|emblem|stamp|signature|poster|screenshot|banner|icon|chart|graph|seal of|wordmark|\.svg|\.gif|\.pdf|\.tif|\.ogg|\.webm/i;
@@ -2365,7 +2367,7 @@ async function hydratePhotos(){
   await lim([...ids], 4, async id => {
     const c = byId(id); if(!c || run !== hydrateRun) return; const ims = await imagesFor(c, 2); if(run !== hydrateRun) return;
     document.querySelectorAll('[data-img="'+id+'"]').forEach(el => { if(!ims[0]) return; el.innerHTML = '<figure class="fig" data-fig>'+imgTag(ims[0], el.dataset.ar || "16/9", true)+'<figcaption><span class="chip2">Wikimedia Commons · File photo</span> '+credit(ims[0])+'</figcaption></figure>'; el.hidden = false; });
-    document.querySelectorAll('[data-th="'+id+'"]').forEach(el => { if(!ims[0]) return; el.innerHTML = '<img src="'+esc(ims[0].url)+'" alt="" loading="lazy" decoding="async" width="'+ims[0].w+'" height="'+ims[0].h+'">'; el.classList.add("has"); });
+    document.querySelectorAll('[data-th="'+id+'"]').forEach(el => { if(!ims[0]) return; el.innerHTML = '<img src="'+esc(szu(ims[0].url, szFor(el)))+'" alt="" loading="lazy" decoding="async" width="'+ims[0].w+'" height="'+ims[0].h+'">'; el.classList.add("has"); });
   });
   if(run !== hydrateRun) return;
   const rowsEl = $("vis-rows"); if(!rowsEl) return;
@@ -2440,7 +2442,7 @@ async function hydrateTopics(){
     el.classList.add("has"); });
 }
 const __hp5 = hydratePhotos;
-hydratePhotos = async function(){ try{ await __hp5(); }finally{ await hydrateTopics(); } };
+hydratePhotos = async function(){ const early = hydrateTopics(); try{ await __hp5(); }finally{ await early; await hydrateTopics(); } }; // topic photos paint at once; story-specific photos replace them when found
 
 /* Explore: image-led topic tiles (same topics, follow stars and filter still work) */
 function tileTopic(id){ const f = follows().includes(id);
@@ -2630,7 +2632,7 @@ async function hydrateTopics(){
     for(let t = 0; t < pool.length; t++){ const c = pool[(n + t) % pool.length]; if(!used.has(c.url)){ im = c; n = n + t + 1; break; } }
     if(!im){ im = pool[n % pool.length]; n++; } nth[k] = n; used.add(im.url);
     const g = el.querySelector(".tgrad"); if(g) g.remove();
-    el.insertAdjacentHTML("afterbegin", '<img src="'+esc(im.url)+'" alt="'+esc(el.dataset.alt || im.alt)+'" loading="lazy" decoding="async" width="'+im.w+'" height="'+im.h+'">'
+    el.insertAdjacentHTML("afterbegin", '<img src="'+esc(szu(im.url, szFor(el)))+'" alt="'+esc(el.dataset.alt || im.alt)+'" loading="lazy" decoding="async" width="'+im.w+'" height="'+im.h+'">'
       + (el.dataset.cr==="0" ? "" : '<a class="cr" href="'+esc(im.page || "https://commons.wikimedia.org")+'" target="_blank" rel="noopener noreferrer" title="Photo: '+esc(im.by)+' · '+esc(im.lic)+'">Photo: '+esc(im.by.slice(0,28))+' · '+esc(im.lic)+'</a>'));
     el.classList.add("has"); });
 }
