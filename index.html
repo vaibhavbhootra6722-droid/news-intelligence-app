@@ -605,7 +605,6 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 @media (min-width:900px){.leadimg .fig img{max-height:48vh;width:100%;object-fit:cover}}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
-
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
@@ -2566,6 +2565,24 @@ const __dp10 = typeof deepPage === "function" ? deepPage : null; if(__dp10) deep
 const __rc10 = renderContent;
 renderContent = function(){ __rc10(); const p = view.page;
   if(p !== "home" && p !== "topics" && p !== "plans" && document.querySelector("#content [data-th],#content [data-tp]")) setTimeout(hydratePhotos, 0); };
+
+/* v10b: instant photos on GitHub Pages — the Action prebuilds topic photos (photos.json); commonsSearch reads them before touching the network */
+let __photoMap = null, __photoReady = Promise.resolve();
+if(/\.github\.io$/.test(location.hostname)){
+  __photoReady = (async () => { try{
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 5000);
+    const r = await fetch("https://raw.githubusercontent.com/" + location.hostname.split(".")[0] + "/" + (location.pathname.split("/")[1] || "") + "/data/photos.json", { signal:ctl.signal }); clearTimeout(tm);
+    if(r.ok){ __photoMap = await r.json();
+      const first = Object.values(__photoMap).find(a => a && a[0]); const d = document.createElement("link"); // warm the hero image
+      if(first){ d.rel = "preload"; d.as = "image"; d.href = (__photoMap[TOPIC_Q.world] && __photoMap[TOPIC_Q.world][0] || first[0]).url; document.head.appendChild(d); } }
+  }catch(e){} })();
+}
+const __cs10 = commonsSearch;
+commonsSearch = async function(q){
+  if(!__photoMap) await __photoReady;
+  if(__photoMap && Array.isArray(__photoMap[q]) && __photoMap[q].length) return __photoMap[q];
+  return __cs10(q);
+};
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
