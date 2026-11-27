@@ -666,8 +666,32 @@ img,svg,video,canvas{max-width:100%}
 .evcat{color:var(--soft)}.xet{margin:2px 0 0;font:600 1.05rem/1.3 var(--serif);overflow-wrap:anywhere}.evwho{font:.85rem var(--sans);color:var(--soft)}
 .evwhen{font:600 .88rem var(--sans)}.evloc,.evsrc{font:.78rem var(--sans);color:var(--soft)}.evnote{font:.8rem var(--sans);padding:6px 8px;border-left:3px solid #c9a227;background:var(--panel2)}
 .evact{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.evact .btn{padding:6px 12px;font-size:.78rem}.evc.st-canceled .xet{text-decoration:line-through;opacity:.7}.evcov{margin-top:16px}
+/* story detail */
+.sq{margin:14px 0;padding-top:10px;border-top:1px solid var(--line)}.sq h3{margin:0 0 6px;font:700 .8rem var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.sq-claim{margin:0 0 4px;font:600 1.12rem/1.35 var(--serif)}.sq-list{margin:0;padding-left:18px;font:.9rem/1.5 var(--sans)}
+.sq-time{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:10px}.sq-time li{padding-left:12px;border-left:2px solid var(--line)}.sq-t{font:600 .78rem var(--sans);color:var(--soft);margin-right:6px}
+.meth{margin-top:18px;border-top:1px solid var(--line);padding-top:8px}.meth summary{cursor:pointer;font:600 .85rem var(--sans);color:var(--accent)}
+.dact-top{margin:10px 0 4px}
+@media (max-width:767px){.drawer{width:100%!important;max-width:100%!important;height:100dvh;border-radius:0}}
+/* v14-16 */
+.rmrow{margin:0 0 12px;display:flex;gap:8px;flex-wrap:wrap}
+.rmwrap{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;flex-direction:column;padding:12px 16px calc(12px + env(safe-area-inset-bottom));max-width:100vw;overflow:hidden}
+.rmh{display:flex;align-items:center;gap:12px}.rmp{font-size:.85rem;color:var(--muted);white-space:nowrap}
+.rmbar{flex:1;height:4px;border-radius:2px;background:var(--panel2);overflow:hidden}.rmbar i{display:block;height:100%;background:var(--accent)}
+.rmc{flex:1;overflow:auto;display:flex;flex-direction:column;justify-content:center;gap:12px;width:100%;max-width:720px;margin:0 auto;padding:12px 0;min-width:0}
+.rmc h2{font-family:var(--serif);font-size:clamp(1.4rem,5vw,2.1rem);line-height:1.25;overflow-wrap:anywhere}
+.rmf{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:720px;margin:0 auto;width:100%}.rmf .btn[disabled]{opacity:.4}
+.qopts{display:grid;gap:8px}.qo{text-align:left;padding:12px 14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line2);overflow-wrap:anywhere}
+.qo.ok{border-color:#2e7d32;background:rgba(46,125,50,.15)}.qo.no{border-color:#c62828;background:rgba(198,40,40,.12)}
+.xws{margin:0 0 18px;min-width:0}.xin{display:flex;gap:8px;align-items:center}.xin input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);font-size:1rem}
+.xhelp{padding:8px 14px;background:var(--panel2);border-radius:12px;margin:8px 0;font-size:.85rem}.xhelp ul{margin:0;padding-left:18px}
+.xres{list-style:none;margin:0;padding:0}.xres>li{border-bottom:1px solid var(--line);padding:10px 0}.xr{display:block;text-align:left;width:100%;overflow-wrap:anywhere}.xr:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.xact{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mkw{margin:0 0 18px;min-width:0}.mkc{width:100%;height:auto;max-height:260px;display:block}.mkt{font-size:11px;fill:var(--muted)}.mkt2{width:100%;border-collapse:collapse;font-size:.85rem}.mkt2 th,.mkt2 td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+.dlf{display:grid;gap:10px;padding:14px;border:1px solid var(--line2);border-radius:12px;margin-bottom:14px}.dlf input{padding:10px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);width:100%;box-sizing:border-box}
+.cap.exc{display:block}[data-cap][data-s=enabled]{color:inherit}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
+
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
@@ -976,8 +1000,8 @@ function overlap(a, b){ let n = 0; a.forEach(x => { if(b.has(x)) n++; }); return
 function sameEvent(A, B){
   const inter = overlap(A.tk, B.tk), small = Math.min(A.tk.size, B.tk.size);
   if(!small) return false;
-  // same incident: a shared distinctive place/name plus at least three shared words once synonyms (house/home, blast/explosion, hurt/injured) are normalised
-  if(A.sk && B.sk && !(A.nums.size && B.nums.size && !overlap(A.nums, B.nums))){
+  // same incident: a shared distinctive place/name plus at least three shared words once synonyms (house/home, blast/explosion, hurt/injured) are normalised; a changed casualty figure is a development of the same story, not a different one
+  if(A.sk && B.sk){
     const anchor = [...A.ents].some(e => !e.includes(" ") && e.length>=5 && !GENERIC_ENT.has(e) && B.ents.has(e));
     if(anchor && overlap(A.sk, B.sk) >= 3) return true;
   }
@@ -2871,6 +2895,359 @@ document.addEventListener("change", ev => { const s = ev.target.closest("[data-v
 const __sh12 = syncHash; syncHash = function(){ __sh12(); if(view.page==="live" && (view.liveMode || store.get("news:livemode"))==="breaking" && !/m=breaking/.test(location.hash)) history.replaceState(null, "", location.hash + "&m=breaking"); };
 window.addEventListener("hashchange", () => { const m = /[#&]m=(events|breaking)/.exec(location.hash); if(m && view.liveMode !== m[1]){ view.liveMode = m[1]; if(view.page==="live") renderContent(); } });
 
+/* ================= v13: story detail built around the reader's questions (evidence-gated), stable story reference, back-button friendly ================= */
+const NUMFIG = /\b(\d[\d,]*)\s+(?:people\s+|persons\s+|civilians\s+|tourists\s+|workers\s+)?(?:dead|killed|die[ds]?|injured|missing)\b|\b(?:kills?|killed|killing)\s+(?:at least\s+|over\s+)?(\d[\d,]*)/i;
+const CORRECTION = /\b(correction|corrected|clarification|retract(?:ed|s)?|apolog(?:y|ises|izes)|withdrawn)\b/i;
+const hashS = id => { const base = location.hash.replace(/&?s=[^&]*/, "").replace(/^#&/, "#"); return location.pathname + location.search + (base && base !== "#" ? base + "&" : "#") + "s=" + encodeURIComponent(id); };
+function figOf(t){ const m = NUMFIG.exec(t); return m ? parseInt((m[1] || m[2]).replace(/,/g, ""), 10) : null; }
+function storyModel(c){
+  const reps = c.reports.slice().sort((a,b) => a.ts - b.ts), rk = c.rank || scoreEvent(c, rankCtx());
+  const seenKey = new Map(), original = [], syndicated = [];
+  reps.forEach(r => { const k = r.key || r.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); if(seenKey.has(k)) syndicated.push(Object.assign({ of:seenKey.get(k) }, r)); else { seenKey.set(k, r.source); original.push(r); } });
+  const figs = reps.map(r => ({ r, n:figOf(r.title) })).filter(x => x.n != null);
+  const distinctFigs = [...new Set(figs.map(x => x.n))];
+  const rose = figs.length >= 2 && figs[figs.length-1].n > figs[0].n ? { from:figs[0], to:figs[figs.length-1] } : null;
+  const spreadMin = reps.length ? Math.round((reps[reps.length-1].ts - reps[0].ts) / 60000) : 0;
+  const official = reps.filter(r => sourceTier(r.source) === 1), corr = reps.filter(r => CORRECTION.test(r.title));
+  const why = [];
+  if(rk.scope === "global" || rk.scope === "national") why.push("Scope: "+(rk.scope === "global" ? "international" : "national")+" — signalled by the wording or by who reported it.");
+  if(official.length) why.push("An official source is among the reports: "+official.map(r => r.source).join(", ")+".");
+  if(c.indep >= 3) why.push(c.indep+" independent outlets reported it.");
+  if(ACTION_RE.test(c.lead.title)) why.push("The headline contains an action or deadline term; open the original to check who is affected.");
+  return { reps, original, syndicated, distinctFigs, rose, spreadMin, official, corr, why, rk };
+}
+function storySections(c){
+  const m = storyModel(c), t = r => fmtTime(r.ts)+" IST";
+  const others = m.original.filter(r => r !== m.original[0] && r.title !== c.lead.title).slice(0, 3);
+  let h = '<section class="sq" aria-labelledby="sq-what"><h3 id="sq-what">What happened</h3><p class="sq-claim">“'+esc(c.lead.title)+'”</p><p class="kpi-note">Publisher’s headline — '+esc(c.lead.source)+', '+esc(shortDate(view.date))+' '+esc(fmtTime(c.first))+' IST. This app shows headlines, not article text; the original link is below.</p>'
+    + (others.length ? '<p class="kpi-note">Other outlets word it differently: '+others.map(r => '“'+esc(r.title)+'” ('+esc(r.source)+')').join("; ")+'</p>' : '')+'</section>';
+  if(m.why.length) h += '<section class="sq" aria-labelledby="sq-why"><h3 id="sq-why">Why it matters</h3><ul class="sq-list">'+m.why.map(x => '<li>'+esc(x)+'</li>').join("")+'</ul><p class="kpi-note">These are the evidence signals we hold, not an editorial opinion.</p></section>';
+  const ch = [];
+  if(m.rose) ch.push('Reported figure rose from '+m.rose.from.n+' ('+esc(m.rose.from.r.source)+', '+t(m.rose.from.r)+') to '+m.rose.to.n+' ('+esc(m.rose.to.r.source)+', '+t(m.rose.to.r)+').');
+  if(m.spreadMin >= 15 && m.reps.length >= 2) ch.push('First report '+t(m.reps[0])+' ('+esc(m.reps[0].source)+'); latest '+t(m.reps[m.reps.length-1])+' ('+esc(m.reps[m.reps.length-1].source)+') — '+m.reps.length+' reports over '+(m.spreadMin >= 120 ? Math.round(m.spreadMin/60)+' hours' : m.spreadMin+' minutes')+'.');
+  if(m.corr.length) ch.push('Correction or clarification noted by '+m.corr.map(r => esc(r.source)).join(", ")+'.');
+  if(ch.length) h += '<section class="sq" aria-labelledby="sq-chg"><h3 id="sq-chg">What changed</h3><ul class="sq-list">'+ch.map(x => '<li>'+x+'</li>').join("")+'</ul></section>';
+  const kind = r => sourceTier(r.source) === 1 ? "Official source" : CORRECTION.test(r.title) ? "Correction" : "Publisher report";
+  h += '<section class="sq" aria-labelledby="sq-src"><h3 id="sq-src">Sources</h3>'
+    + (m.distinctFigs.length > 1 ? '<p class="wire" role="note"><b>Unresolved disagreement:</b> reports give different figures ('+m.distinctFigs.join(" vs ")+'). Check each original.</p>' : '')
+    + '<p class="kpi-note">'+m.original.length+' original report'+(m.original.length === 1 ? "" : "s")+(m.syndicated.length ? ' · '+m.syndicated.length+' likely syndicated cop'+(m.syndicated.length === 1 ? "y" : "ies")+' (identical wording)' : '')+(c.outlets === 1 ? ' · single source, not independently confirmed' : '')+' · last update '+esc(fmtTime(c.last))+' IST</p>'
+    + '<ol class="sq-time">'+m.reps.map(r => { const syn = m.syndicated.find(s => s.link === r.link); return '<li><span class="sq-t">'+esc(fmtTime(r.ts))+'</span> <a href="'+esc(safeUrl(r.link))+'" target="_blank" rel="noopener noreferrer">'+esc(r.source)+' '+icon("i-ext")+'</a> <span class="tier t'+sourceTier(r.source)+'">'+esc(kind(r))+'</span>'+(syn ? ' <span class="kpi-note">· likely copy of '+esc(syn.of)+'</span>' : '')+'<div class="kpi-note">“'+esc(r.title)+'”</div></li>'; }).join("")+'</ol></section>';
+  return h;
+}
+const __od13 = openDetail;
+openDetail = function(id){
+  const c = byId(id); if(!c) return; view.scrollBefore = window.scrollY;
+  __od13(id);
+  const body = document.querySelector(".drawer-b"); if(!body) return;
+  const h2 = body.querySelector("#d-title"), facts = body.querySelector(".facts");
+  if(h2 && facts){ const sec = document.createElement("div"); sec.className = "sqwrap"; sec.innerHTML = storySections(c); h2.after(sec); }
+  // methodology and the legacy detail go behind one clearly named control
+  const first = body.querySelector(".facts"), det = document.createElement("details"); det.className = "meth"; det.innerHTML = "<summary>How this story was classified and ranked (methodology)</summary>";
+  let n = first; const move = []; while(n){ move.push(n); n = n.nextSibling; } move.forEach(x => det.appendChild(x)); body.appendChild(det);
+  // keep the primary actions visible next to the sections
+  const act = det.querySelector(".dact"); if(act){ body.insertBefore(act, body.querySelector(".sqwrap")); act.classList.add("dact-top"); }
+  view.openId = id; try{ history.pushState({ s:id }, "", hashS(id)); }catch(e){}
+};
+const __cd13 = closeDetail;
+closeDetail = function(){ const had = view.openId; view.openId = null; __cd13(); if(had){ if(/[#&]s=/.test(location.hash)){ if(history.state && history.state.s) history.back(); else history.replaceState(null, "", location.pathname + location.search + location.hash.replace(/&?s=[^&]*/, "")); } if(view.scrollBefore != null) window.scrollTo(0, view.scrollBefore); } };
+window.addEventListener("popstate", () => { if(view.openId && !/[#&]s=/.test(location.hash)){ view.openId = null; $("layer").innerHTML = ""; if(view.scrollBefore != null) window.scrollTo(0, view.scrollBefore); } else { const m = /[#&]s=([^&]+)/.exec(location.hash); if(m && !view.openId && byId(decodeURIComponent(m[1]))) openDetail(decodeURIComponent(m[1])); } });
+{ const m0 = /[#&]s=([^&]+)/.exec(location.hash); view.pendingS = m0 ? decodeURIComponent(m0[1]) : null; }
+const __sh13 = syncHash; syncHash = function(){ __sh13(); const keep = view.openId || view.pendingS; if(keep && !/[#&]s=/.test(location.hash)) history.replaceState(history.state, "", hashS(keep)); };
+// a shared link with #s=<id> opens that story once the day has loaded
+function openFromHash(){ const id = view.pendingS; if(id && !view.openId){ view.pendingS = null; if(byId(id)) openDetail(id); else history.replaceState(null, "", location.pathname + location.search + location.hash.replace(/&?s=[^&]*/, "")); } }
+{ let tries = 0; const iv = setInterval(() => { if(++tries > 60){ clearInterval(iv); return; } if(view.clusters && view.clusters.length && !view.loading){ clearInterval(iv); openFromHash(); } }, 250); }
+
+/* ===== v14: Saved library (stories / events / deadlines), reading mode, optional quiz ===== */
+const sv14 = { tab:"all" };
+const SAVE_MAX = 200;
+function svIdBackfill(){
+  const s = store.get("news:saved") || []; let ch = false;
+  s.forEach(x => { if(x.id && byId(x.id)) return; const c = view.clusters.find(c => c.reports.some(r => r.link===x.link)); if(c && x.id!==c.id){ x.id = c.id; x.day = x.day || view.date; ch = true; } });
+  if(ch) store.set("news:saved", s);
+}
+function svSnapshotOpen(i){
+  const x = (store.get("news:saved") || [])[i]; if(!x) return;
+  if(x.id && byId(x.id)){ openDetail(x.id); return; }
+  lastFocus = document.activeElement;
+  $("layer").innerHTML = '<div class="scrim" id="dscrim"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title"><div class="drawer-h"><span class="kpi-note" style="margin:0">Saved snapshot</span><button class="iconbtn" id="dclose" aria-label="Close">'+icon("i-x")+'</button></div>'
+    + '<div class="drawer-b"><h2 id="d-title">'+esc(x.title)+'</h2><dl class="facts"><dt>Source</dt><dd>'+esc(x.source)+'</dd><dt>Saved from</dt><dd>'+esc(shortDate(x.date))+', '+fmtTime(x.ts)+' IST</dd></dl>'
+    + '<p class="muted">This is the copy saved on your device. The full coverage record for that day is not loaded now.</p>'
+    + '<p><a class="btn" href="'+esc(safeUrl(x.link))+'" target="_blank" rel="noopener noreferrer">Open the original '+icon("i-ext")+'</a> <button class="btn sec2" data-pick="'+esc(x.date)+'">Open that day</button></p></div></aside>';
+  setTimeout(() => { const b = $("dclose"); if(b) b.focus(); }, 0);
+}
+function svDeadlineRows(){
+  const saved = store.get("news:obl") || [], from = new Date(Date.parse((view.date || todayIST())+"T00:00:00Z")), dlx = store.get("news:dlx") || {};
+  const fmt = dt => new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}).format(dt);
+  return saved.map(i => { const d = DEADLINES[i]; if(!d) return null; const w = nextDates(d, from); const ex = (dlx[i] || []).slice(-1)[0];
+    return '<li class="row"><div class="rowmain"><span class="hl">'+esc(d.t)+'</span><span class="cap">'+esc(d.a)+' · '+(w ? 'next standard date <b>'+fmt(w)+'</b>' : 'no upcoming date')+(ex ? ' · <b>amended: '+esc(ex.date)+'</b> (recorded '+esc(ex.checked)+')' : '')+'</span></div><button class="iconbtn" data-v3="obl:'+i+'" aria-label="Remove deadline">'+icon("i-x")+'</button></li>'; }).filter(Boolean);
+}
+function savedPage(){
+  svIdBackfill();
+  const st = store.get("news:saved") || [], ev = Object.values(store.get("news:evsaved") || {}), dl = svDeadlineRows(), t = sv14.tab;
+  const tabs = [["all","All ("+(st.length+ev.length+dl.length)+")"],["stories","Stories ("+st.length+")"],["events","Events ("+ev.length+")"],["deadlines","Deadlines ("+dl.length+")"]];
+  const stories = st.map((x, i) => '<li class="row"><div class="rowmain"><button class="hl linkbtn" data-v14="svopen:'+i+'" style="text-align:left">'+esc(x.title)+'</button><span class="cap">'+esc(x.source)+' · '+esc(shortDate(x.date))+', '+fmtTime(x.ts)+' IST · '+(x.id && byId(x.id) ? 'full coverage available' : 'saved snapshot')+' · <a href="'+esc(safeUrl(x.link))+'" target="_blank" rel="noopener noreferrer">original</a></span></div><button class="iconbtn" data-unsave="'+i+'" aria-label="Remove from saved">'+icon("i-x")+'</button></li>');
+  const cur = (evx && evx.data && evx.data.events) || [];
+  const events = ev.map(e => { const n = cur.find(x => x.id===e.id), chg = n && (n.status!==e.status || n.localDate!==e.localDate), st2 = (n || e).status;
+    return '<li class="row"><div class="rowmain"><span class="hl">'+esc(e.name)+'</span><span class="cap">'+esc([e.localDate, e.city, e.venue].filter(Boolean).join(" · "))+' · <b>'+esc(st2==="canceled" ? "Cancelled" : st2==="rescheduled" ? "Rescheduled" : "Scheduled")+'</b>'+(chg ? ' · changed since you saved it (was '+esc(e.status==="canceled" ? "cancelled" : e.localDate || "scheduled")+')' : '')+'</span></div><button class="chip" data-v12="evics:'+esc(e.id)+'">Add to calendar</button> <button class="iconbtn" data-v12="evsave:'+esc(e.id)+'" aria-label="Remove event">'+icon("i-x")+'</button></li>'; });
+  const sec = (h, rows, empty) => '<section class="sec"><div class="sec-h"><h2>'+h+'</h2></div>'+(rows.length ? '<ul class="rows">'+rows.join("")+'</ul>' : '<p class="muted">'+empty+'</p>')+'</section>';
+  return '<div class="page-h"><h1>Saved</h1><span class="sub">Kept on this device</span></div>'
+    + '<div class="seg wide" role="group" aria-label="Saved type">'+tabs.map(([k, l]) => '<button aria-pressed="'+(k===t)+'" data-v14="svtab:'+k+'">'+l+'</button>').join("")+'</div>'
+    + ((t==="all" || t==="stories") ? sec("Stories", stories, "No saved stories. Open a story and choose Save.") : "")
+    + ((t==="all" || t==="events") ? sec("Events", events, "No saved events. Save one from Live › Events.") : "")
+    + ((t==="all" || t==="deadlines") ? sec("Deadlines", dl, "No saved deadlines. Save one from My Desk › Deadlines.") : "")
+    + '<p class="muted small">Cancelled or rescheduled events and amended deadlines stay here with their status, so you never lose track of a change.</p>';
+}
+/* ---- reading mode ---- */
+const rm = { on:false, i:0, list:[], date:null };
+function rmList(){ return ranked().filter(c => c.rank && (c.rank.score >= 30 || c.sev>=1)).slice(0, 12).concat([]); }
+function rmCard(){
+  const c = rm.list[rm.i], n = rm.list.length, saved = (store.get("news:saved")||[]).some(x => x.link===c.lead.link);
+  const top = c.reports.slice().sort((a,b) => a.ts-b.ts)[0];
+  $("layer").innerHTML = '<div class="rmwrap" role="dialog" aria-modal="true" aria-label="Reading mode"><div class="rmh"><button class="iconbtn" data-v14="rmclose" id="rmclose" aria-label="Close reading mode">'+icon("i-x")+'</button><span class="rmp" aria-live="polite">'+(rm.i+1)+' of '+n+'</span><div class="rmbar" role="progressbar" aria-valuemin="1" aria-valuemax="'+n+'" aria-valuenow="'+(rm.i+1)+'"><i style="width:'+Math.round((rm.i+1)/n*100)+'%"></i></div></div>'
+    + '<article class="rmc"><p class="kpi-note">'+esc(catLabel(c.group))+' · '+fmtTime(c.first)+' IST</p><h2>'+esc(c.lead.title)+'</h2><p class="muted">Reported by '+c.indep+' independent outlet'+(c.indep===1 ? "" : "s")+', first by '+esc(top.source)+'.</p></article>'
+    + '<div class="rmf"><button class="btn sec2" data-v14="rmprev"'+(rm.i===0 ? " disabled" : "")+'>Back</button><button class="chip" data-v14="rmsave" aria-pressed="'+saved+'">'+icon("i-bm")+' '+(saved ? "Saved" : "Save")+'</button><button class="chip" data-v14="rmcov">Coverage</button>'+(audioSupported() ? '<button class="chip" data-v14="rmlisten">Listen</button>' : '')
+    + (rm.i < n-1 ? '<button class="btn" data-v14="rmnext">Next</button>' : '<button class="btn" data-v14="quiz">Check what you learned</button>')+'</div></div>';
+  markRead(c.id);
+}
+function rmOpen(){ rm.list = rmList(); if(!rm.list.length) return; rm.on = true; rm.i = 0; rm.date = view.date; lastFocus = document.activeElement; rmCard(); const b = $("rmclose"); if(b) b.focus(); }
+function rmClose(){ rm.on = false; stopAudio(); $("layer").innerHTML = ""; if(lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
+/* ---- quiz: only facts the loaded edition can prove ---- */
+function quizBuild(){
+  const L = view.clusters.filter(c => c.reports.length), Q = [], pick = (arr, n) => arr.slice(0, n);
+  const byOut = L.slice().sort((a,b) => b.indep-a.indep);
+  if(byOut.length >= 4 && byOut[0].indep > byOut[1].indep){
+    const o = pick(byOut, 4); Q.push({ q:"Which story was reported by the most independent outlets?", opts:o.map(c => c.lead.title), a:0, why:o[0].indep+" independent outlets reported it, against "+o[1].indep+" for the next.", id:o[0].id });
+  }
+  const firsts = L.map(c => { const r = c.reports.slice().sort((a,b) => a.ts-b.ts); return { c, r }; }).filter(x => x.r.length>=2 && x.r[1].ts > x.r[0].ts && x.r[0].source!==x.r[1].source && sourceTier(x.r[0].source) !== 1);
+  if(firsts.length){ const f = firsts.sort((a,b) => b.c.indep-a.c.indep)[0], others = [...new Set(L.flatMap(c => c.reports.map(r => r.source)).filter(s => s!==f.r[0].source))].slice(0, 3);
+    if(others.length >= 3) Q.push({ q:"Which outlet reported first: “"+f.c.lead.title+"”?", opts:[f.r[0].source].concat(others), a:0, why:f.r[0].source+" at "+fmtTime(f.r[0].ts)+" IST; "+f.r[1].source+" followed at "+fmtTime(f.r[1].ts)+" IST.", id:f.c.id }); }
+  const cnt = {}; L.forEach(c => cnt[c.group] = (cnt[c.group]||0)+1); const g = Object.entries(cnt).sort((a,b) => b[1]-a[1]);
+  if(g.length >= 4 && g[0][1] > g[1][1]) Q.push({ q:"Which topic has the most stories in this edition?", opts:g.slice(0,4).map(x => catLabel(x[0])), a:0, why:catLabel(g[0][0])+" has "+g[0][1]+" stories; the next has "+g[1][1]+".", id:null });
+  return Q.slice(0, 3).map(q => { const idx = q.opts.map((_, i) => i), k = (view.date||"").split("-").reduce((s, x) => s+(+x||0), 0) % q.opts.length; const rot = idx.map(i => (i+k) % q.opts.length); return { q:q.q, opts:rot.map(i => q.opts[i]), a:rot.indexOf(0), why:q.why, id:q.id }; });
+}
+const qz = { qs:[], i:0, score:0, done:false, picked:null };
+function quizShow(){
+  const hist = store.get("news:quiz") || [];
+  if(!qz.qs.length){ $("layer").innerHTML = '<div class="rmwrap" role="dialog" aria-modal="true" aria-label="Check what you learned"><div class="rmh"><button class="iconbtn" data-v14="rmclose" id="rmclose" aria-label="Close">'+icon("i-x")+'</button></div><article class="rmc"><h2>Check what you learned</h2><p class="muted">There are not enough distinct facts in this edition to ask a fair question yet.</p></article></div>'; return; }
+  if(qz.done){ $("layer").innerHTML = '<div class="rmwrap" role="dialog" aria-modal="true" aria-label="Quiz result"><div class="rmh"><button class="iconbtn" data-v14="rmclose" id="rmclose" aria-label="Close">'+icon("i-x")+'</button></div><article class="rmc"><h2>'+qz.score+' of '+qz.qs.length+'</h2><p class="muted">Based only on this edition’s reported facts. History: '+(hist.slice(-5).map(h => esc(h.date)+' '+h.score+'/'+h.total).join(" · ") || "first attempt")+'</p></article></div>'; return; }
+  const q = qz.qs[qz.i], p = qz.picked;
+  $("layer").innerHTML = '<div class="rmwrap" role="dialog" aria-modal="true" aria-label="Check what you learned"><div class="rmh"><button class="iconbtn" data-v14="rmclose" id="rmclose" aria-label="Close">'+icon("i-x")+'</button><span class="rmp">Question '+(qz.i+1)+' of '+qz.qs.length+'</span></div>'
+    + '<article class="rmc"><h2>'+esc(q.q)+'</h2><div class="qopts" role="group" aria-label="Answers">'+q.opts.map((o, i) => '<button class="qo'+(p!==null ? (i===q.a ? " ok" : i===p ? " no" : "") : "")+'" data-v14="qans:'+i+'"'+(p!==null ? " disabled" : "")+'>'+esc(o)+'</button>').join("")+'</div>'
+    + (p!==null ? '<p role="status"><b>'+(p===q.a ? "Correct." : "Not quite.")+'</b> '+esc(q.why)+(q.id ? ' <button class="linkbtn" data-v14="qev:'+q.id+'">See the evidence</button>' : '')+'</p><button class="btn" data-v14="qnext">'+(qz.i < qz.qs.length-1 ? "Next question" : "Finish")+'</button>' : '')+'</article></div>';
+}
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-v14]"); if(!b) return; const [k, ...r] = b.dataset.v14.split(":"), arg = r.join(":");
+  if(k==="svtab"){ sv14.tab = arg; renderContent(); }
+  else if(k==="svopen") svSnapshotOpen(+arg);
+  else if(k==="rm") rmOpen();
+  else if(k==="rmclose") rmClose();
+  else if(k==="rmnext" && rm.i < rm.list.length-1){ stopAudio(); rm.i++; rmCard(); const x = document.querySelector("[data-v14=rmnext]") || $("rmclose"); if(x) x.focus(); }
+  else if(k==="rmprev" && rm.i > 0){ stopAudio(); rm.i--; rmCard(); const x = document.querySelector("[data-v14=rmnext]"); if(x) x.focus(); }
+  else if(k==="rmsave"){ const c = rm.list[rm.i]; let s = store.get("news:saved") || []; const i = s.findIndex(x => x.link===c.lead.link); if(i>=0) s.splice(i,1); else s.unshift({ title:c.lead.title, link:c.lead.link, source:c.lead.source, ts:c.first, date:view.date, id:c.id }); store.set("news:saved", s.slice(0, SAVE_MAX)); rmCard(); }
+  else if(k==="rmcov"){ const c = rm.list[rm.i]; rm.on = false; stopAudio(); openDetail(c.id); }
+  else if(k==="rmlisten"){ stopAudio(); speakQueue([rm.list[rm.i]], "Reading mode"); audio.date = view.date; }
+  else if(k==="quiz"){ stopAudio(); qz.qs = quizBuild(); qz.i = 0; qz.score = 0; qz.done = false; qz.picked = null; quizShow(); const x = $("rmclose"); if(x) x.focus(); }
+  else if(k==="qans"){ if(qz.picked!==null) return; qz.picked = +arg; if(qz.picked===qz.qs[qz.i].a) qz.score++; quizShow(); }
+  else if(k==="qnext"){ if(qz.i < qz.qs.length-1){ qz.i++; qz.picked = null; } else { qz.done = true; const h = store.get("news:quiz") || []; h.push({ date:view.date, score:qz.score, total:qz.qs.length }); store.set("news:quiz", h.slice(-30)); } quizShow(); }
+  else if(k==="qev"){ $("layer").innerHTML = ""; openDetail(arg); }
+});
+document.addEventListener("keydown", ev => { if(!rm.on) return; if(ev.key==="Escape"){ rmClose(); } else if(ev.key==="ArrowRight" && rm.i < rm.list.length-1){ stopAudio(); rm.i++; rmCard(); } else if(ev.key==="ArrowLeft" && rm.i>0){ stopAudio(); rm.i--; rmCard(); } });
+/* narration must never outlive its edition */
+const __rc14 = renderContent;
+renderContent = function(){ if(rm.on && rm.date !== view.date){ rm.on = false; $("layer").innerHTML = ""; } if(typeof audio !== "undefined" && audio.on && audio.date && audio.date !== view.date) stopAudio();
+  __rc14(); if(view.page==="home" && view.date && view.clusters.length && !document.querySelector("#content .rmbtn")){ const h = document.querySelector("#content .hello, #content .brief, #content section"); if(h) h.insertAdjacentHTML("beforebegin", '<p class="rmrow"><button class="chip rmbtn" data-v14="rm">'+icon("i-bm")+' Reading mode</button> <button class="chip" data-v14="quiz">Check what you learned</button></p>'); } };
+/* a save click records the story id so it can reopen in-app later */
+document.addEventListener("click", ev => { const b = ev.target.closest('[data-v3^="save:"]'); if(!b) return; setTimeout(() => { const s = store.get("news:saved") || [], c = byId(b.dataset.v3.slice(5)); if(c && s[0] && s[0].link===c.lead.link && !s[0].id){ s[0].id = c.id; store.set("news:saved", s); } }, 0); });
+
+/* ===== v15: Explore search workspace, My Desk evidence records, deadline exceptions, markets chart ===== */
+const ex15 = { q:"" };
+const XOPS = /\b(in|source|is):("[^"]+"|\S+)/gi;
+function xChips(q){ const out = []; let m; XOPS.lastIndex = 0; while((m = XOPS.exec(q))) out.push(m[0]); return out; }
+function xResults(){
+  const q = ex15.q.trim(), n = view.clusters.length, day = view.date ? shortDate(view.date) : "";
+  const scope = '<p class="muted small" id="xscope">Searching <b>'+n+'</b> stories from <b>'+esc(day || "today")+'</b> (IST). Archive days load one at a time — pick another day in the calendar to search it.</p>';
+  if(view.loading && !n) return scope + '<p class="muted">Loading this day’s stories…</p>';
+  if(!n) return scope + (view.failed && view.failed.length ? '<div class="empty"><b>Search is incomplete.</b>Some sources failed to load for this day, so a quiet result may be a load problem, not a quiet day.</div>' : '<div class="empty"><b>No stories were collected for this day.</b>That is different from “no matches”: there was nothing to search.</div>');
+  if(!q) return scope + '<p class="muted small">Type to search headlines and outlets. Operators are optional.</p>';
+  const res = searchEvents(ranked(), q).slice(0, 30);
+  if(!res.length) return scope + '<div class="empty"><b>No matches for “'+esc(q)+'” on '+esc(day)+'.</b>The day has '+n+' stories; try fewer words, or remove a filter chip.</div>';
+  return scope + '<p class="small" role="status">'+res.length+(res.length===30 ? "+" : "")+' match'+(res.length===1 ? "" : "es")+'</p><ul class="xres" id="xlist">'+res.map(c => '<li><button class="xr" '+openAttr(c)+'><b>'+esc(c.lead.title)+'</b><span class="meta"><span class="src">'+esc(c.lead.source)+'</span><span>'+fmtTime(c.first)+' IST</span><span>'+esc(catLabel(c.group))+'</span></span></button>'
+    + '<span class="xact"><button class="chip" data-cat="'+esc(c.group)+'">Topic: '+esc(catLabel(c.group))+'</button><button class="chip" data-v3="follow:'+esc(c.group)+'" aria-pressed="'+follows().includes(c.group)+'">'+(follows().includes(c.group) ? "Following" : "Follow topic")+'</button></span></li>').join("")+'</ul>';
+}
+function xWorkspace(){
+  const chips = xChips(ex15.q);
+  return '<section class="xws" aria-label="Search"><div class="xin" role="search"><label class="sr" for="xq">Search stories</label><input id="xq" type="search" value="'+esc(ex15.q)+'" placeholder="Search headlines, outlets, topics" autocomplete="off" enterkeyhint="search">'
+    + '<button class="chip" data-v15="xhelp" aria-expanded="'+!!ex15.help+'" aria-controls="xhelp">Operators</button></div>'
+    + (ex15.help ? '<div id="xhelp" class="xhelp"><ul><li><b>in:bfsi</b> — one topic</li><li><b>source:reuters</b> — one outlet</li><li><b>is:critical</b> — severe events only</li><li><b>"exact phrase"</b> — quoted phrase</li><li>Several words must all match.</li></ul></div>' : '')
+    + (chips.length ? '<div class="chips" aria-label="Active filters">'+chips.map(t => '<button class="chip on" data-v15="xrm:'+esc(t)+'" aria-label="Remove filter '+esc(t)+'">'+esc(t)+' ✕</button>').join("")+'</div>' : '')
+    + '<div id="xres">'+xResults()+'</div>'
+    + '<p class="muted small">Coverage boundary: English-language headlines indexed by Google News India. Regional-language outlets and hyper-local sources may be missing, so a missing story is not proof it did not happen.</p></section>';
+}
+const __ep15 = explorePage;
+explorePage = function(){ const h = __ep15(); return h.replace('<div class="exp-tools">', xWorkspace()+'<div class="exp-tools">'); };
+document.addEventListener("input", ev => { if(ev.target.id!=="xq") return; ex15.q = ev.target.value; const r = $("xres"); if(r){ r.innerHTML = xResults(); } const c = document.querySelector(".xws .chips"); if(c) c.remove(); const ch = xChips(ex15.q); if(ch.length) document.querySelector(".xin").insertAdjacentHTML("afterend", '<div class="chips" aria-label="Active filters">'+ch.map(t => '<button class="chip on" data-v15="xrm:'+esc(t)+'" aria-label="Remove filter '+esc(t)+'">'+esc(t)+' ✕</button>').join("")+'</div>'); });
+document.addEventListener("keydown", ev => { const t = ev.target; if(!t.closest || !t.closest(".xws")) return; const L = [...document.querySelectorAll("#xlist .xr")]; if(!L.length) return;
+  if(ev.key==="ArrowDown"){ ev.preventDefault(); const i = L.indexOf(document.activeElement); (L[i+1] || L[0]).focus(); } else if(ev.key==="ArrowUp"){ ev.preventDefault(); const i = L.indexOf(document.activeElement); if(i<=0) $("xq").focus(); else L[i-1].focus(); } });
+
+/* ---- My Desk: evidence-linked regulatory records ---- */
+const DOC_TYPES = [["Master Direction",/master direction/i],["Circular",/circular/i],["Notification",/notification/i],["Press release",/press release/i],["Order",/\border\b/i],["Guidelines",/guidelines?/i],["Regulations",/regulations?/i],["Draft / consultation",/draft|consultation|discussion paper/i],["FAQ",/\bFAQs?\b/i]];
+const AUTH_RE = /\b(RBI|SEBI|IRDAI|PFRDA|NHB|MCA|CBDT|CBIC|ICAI|NFRA|IBBI|ministry of finance)\b/i;
+function evRecord(c){
+  const t = c.lead.title, official = c.reports.filter(r => sourceTier(r.source)===1), media = c.reports.filter(r => sourceTier(r.source)!==1);
+  const dt = DOC_TYPES.find(x => x[1].test(t)), au = t.match(AUTH_RE);
+  return { c, official, media, type:dt ? dt[0] : null, auth: official[0] ? official[0].source : (au ? au[1].toUpperCase() : null), authOfficial: !!official.length, ref:refOf(t), issued:(official[0] || c.reports[0]).ts, eff:regDate(t), status:regStatus(t),
+    ents:ENTITY_RE.filter(([,re]) => re.test(t)).map(x => x[0]) };
+}
+function trackerPage(){
+  const evs = ranked().filter(c => c.group==="bfsi" && (c.tier===1 || regStatus(c.lead.title)!=="Status not stated")).sort((a,b) => (b.tier===1)-(a.tier===1) || b.rank.score-a.rank.score).slice(0, 20);
+  if(!evs.length) return '<div class="empty"><b>No regulatory documents or changes found for this day.</b>Routine news (rate decisions, penalties, results) is not listed here. Official feeds can be turned on in Connection settings.</div>';
+  return '<p class="muted small">Each record is built only from what the sources state. A “Previous / New rule” comparison appears only when an official document is linked as evidence; a headline alone cannot establish it. This is not legal advice.</p>'
+    + evs.map(c => { const r = evRecord(c), nf = '<span class="muted">Not stated</span>';
+      return '<article class="trk"><div class="trkh"><span class="stat s-'+r.status.split(/[ \/]/)[0].toLowerCase()+'">'+esc(r.status)+'</span><span class="muted small">'+(r.authOfficial ? "Official record" : "Media report only")+'</span></div>'
+        + '<h3><button '+openAttr(c)+'>'+esc(c.lead.title)+'</button></h3><dl class="kv">'
+        + '<div><dt>Issuing authority</dt><dd>'+(r.auth ? esc(r.auth)+(r.authOfficial ? " (official feed)" : " (named in a media report)") : nf)+'</dd></div>'
+        + '<div><dt>Document type</dt><dd>'+(r.type ? esc(r.type) : nf)+'</dd></div>'
+        + '<div><dt>Reference number</dt><dd>'+(r.ref ? esc(r.ref) : nf)+'</dd></div>'
+        + '<div><dt>Issue date</dt><dd>'+esc(shortDate(view.date))+', '+fmtTime(r.issued)+' IST <span class="muted small">(first report)</span></dd></div>'
+        + '<div><dt>Applicability</dt><dd>'+(r.ents.length ? r.ents.map(x => '<span class="chip2">'+esc(x)+'</span>').join(" ") : nf)+'</dd></div>'
+        + '<div><dt>Effective date</dt><dd>'+(r.eff ? esc(r.eff) : nf)+'</dd></div>'
+        + '<div><dt>Previous / New rule</dt><dd>'+(r.authOfficial ? 'Open the official document to compare; this app does not infer it.' : 'Not shown — no official document is linked as evidence.')+'</dd></div></dl>'
+        + '<a class="chip" href="'+esc(safeUrl((r.official[0] || c.lead).link))+'" target="_blank" rel="noopener noreferrer">Original source '+icon("i-ext")+'</a>'
+        + (r.media.length ? '<details class="meth"><summary>Media coverage (supporting, not the rule itself) — '+r.media.length+'</summary><ul class="covlist">'+r.media.slice(0, 8).map(m => '<li><a href="'+esc(safeUrl(m.link))+'" target="_blank" rel="noopener noreferrer">'+esc(m.source)+'</a> · '+fmtTime(m.ts)+' IST</li>').join("")+'</ul></details>' : '')
+        + '</article>'; }).join("");
+}
+/* ---- deadlines: baseline vs verified exceptions with history ---- */
+const OFFICIAL_HOST = /(^|\.)(incometax\.gov\.in|incometaxindia\.gov\.in|gst\.gov\.in|cbic\.gov\.in|epfindia\.gov\.in|esic\.gov\.in|egazette\.gov\.in|mca\.gov\.in|pib\.gov\.in)$/i;
+const dlx = () => store.get("news:dlx") || {};
+function dlxHost(u){ try{ const x = new URL(u); return x.protocol==="https:" ? x.hostname : null; }catch(e){ return null; } }
+function dlIcs(i){
+  const d = DEADLINES[i]; if(!d) return ""; const from = new Date(Date.parse((view.date || todayIST())+"T00:00:00Z")), ex = (dlx()[i] || []).slice(-1)[0], base = nextDates(d, from);
+  const day = ex ? ex.date.replace(/-/g,"") : base ? base.toISOString().slice(0,10).replace(/-/g,"") : null; if(!day) return "";
+  const e = s => String(s).replace(/[\\;,]/g, m => "\\"+m);
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Daily News Intelligence//EN","BEGIN:VEVENT","UID:dl-"+i+"-"+day+"@dni","DTSTAMP:"+new Date().toISOString().replace(/[-:]|\.\d+/g,""),"DTSTART;VALUE=DATE:"+day,
+    "SUMMARY:"+e(d.t+" ("+d.a+")"),"DESCRIPTION:"+e((ex ? "Verified exception recorded "+ex.checked+" from "+ex.url+". " : "Standard statutory date. ")+"Always verify on the official portal: "+PORTAL[d.a]),"END:VEVENT","END:VCALENDAR"].join("\r\n");
+}
+const __dp15 = deadlinesPage;
+deadlinesPage = function(){
+  let h = __dp15(); const X = dlx();
+  h = h.replace(/<li class="row">([\s\S]*?)<\/li>/g, (m, inner) => { const k = inner.match(/obl:(\d+)/); if(!k) return m; const i = +k[1], hist = X[i] || [], cur = hist[hist.length-1];
+    const note = cur ? '<span class="cap exc"><b>Verified exception:</b> '+esc(cur.date)+' · checked '+esc(cur.checked)+' · <a href="'+esc(cur.url)+'" target="_blank" rel="noopener noreferrer">original notice</a> ('+(OFFICIAL_HOST.test(dlxHost(cur.url)||"") ? "official host" : "host not recognised as official")+')'+(hist.length>1 ? ' · '+(hist.length-1)+' earlier change'+(hist.length>2 ? "s" : "") : '')+'</span>' : '<span class="cap">Baseline standard date — no verified exception recorded.</span>';
+    return '<li class="row">'+inner.replace('</div><button', note+'<span class="cap"><button class="linkbtn" data-v15="dlics:'+i+'">Add to calendar (.ics)</button> · <button class="linkbtn" data-v15="dlexc:'+i+'">Record a verified exception</button> · <button class="linkbtn" disabled title="Reminders need sign-in and push, which are not enabled">Reminder (not enabled)</button></span></div><button')+'</li>'; });
+  const open = view.dlExc; if(open!==undefined && open!==null){ const d = DEADLINES[open]; h = '<form class="dlf" id="dlform" data-i="'+open+'"><h3>Record a verified exception — '+esc(d.t)+'</h3><p class="muted small">Only record a date announced in an official notice. Paste its link so the change can be checked later. The baseline date stays visible in history.</p>'
+    + '<label>New due date <input type="date" id="dlf-date" required></label><label>Official notice link (https) <input type="url" id="dlf-url" placeholder="https://" required></label><p id="dlf-err" class="warn small" role="alert"></p><button class="btn" type="submit">Save</button> <button class="btn sec2" type="button" data-v15="dlcancel">Cancel</button></form>'+h; }
+  return h;
+};
+document.addEventListener("submit", ev => { if(ev.target.id!=="dlform") return; ev.preventDefault(); const f = ev.target, i = +f.dataset.i, d = $("dlf-date").value, u = $("dlf-url").value.trim(), err = $("dlf-err");
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ err.textContent = "Enter a valid date."; return; } if(!dlxHost(u)){ err.textContent = "The notice link must be a valid https address."; return; }
+  const X = dlx(); (X[i] = X[i] || []).push({ date:d, url:u, checked:todayIST(), at:Date.now() }); store.set("news:dlx", X); view.dlExc = null; renderContent(); });
+document.addEventListener("click", ev => { const b = ev.target.closest("[data-v15]"); if(!b) return; const [k, ...r] = b.dataset.v15.split(":"), arg = r.join(":");
+  if(k==="xhelp"){ ex15.help = !ex15.help; const v = $("xq") ? $("xq").value : ex15.q; renderContent(); const q = $("xq"); if(q){ q.value = v; q.focus(); } }
+  else if(k==="xrm"){ ex15.q = ex15.q.replace(arg, "").replace(/\s+/g, " ").trim(); renderContent(); const q = $("xq"); if(q) q.focus(); }
+  else if(k==="dlexc"){ view.dlExc = +arg; renderContent(); const x = $("dlf-date"); if(x) x.focus(); }
+  else if(k==="dlcancel"){ view.dlExc = null; renderContent(); }
+  else if(k==="dlics"){ const s = dlIcs(+arg); if(!s) return; const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([s], { type:"text/calendar" })); a.download = "deadline-"+arg+".ics"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+});
+
+/* ---- markets: end-of-day line chart from the prebuilt markets.json ---- */
+const MK_URL = "https://raw.githubusercontent.com/vaibhavbhootra6722-droid/news-intelligence-app/data/markets.json";
+const mk15 = { state:"idle", data:null, sym:null, range:"3M" };
+function mkLoad(){
+  if(mk15.state!=="idle") return; mk15.state = "loading"; const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 8000);
+  fetch(MK_URL, { signal:ctl.signal, cache:"no-cache" }).then(r => { if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }).then(j => { mk15.data = j; mk15.state = j && j.series && Object.keys(j.series).length ? "ok" : "empty"; mk15.sym = mk15.sym || (mk15.state==="ok" ? Object.keys(j.series)[0] : null); })
+    .catch(() => { mk15.state = mk15.data ? "ok" : "error"; }).finally(() => { clearTimeout(tm); if(view.page==="cat" && view.cat==="markets") renderContent(); });
+}
+const RANGE_DAYS = { "1M":22, "3M":66, "6M":132, "1Y":260 };
+function mkSvg(pts, label){
+  const W = 640, H = 220, P = 36, ys = pts.map(p => p[1]), lo = Math.min(...ys), hi = Math.max(...ys), sp = hi-lo || 1;
+  const X = i => P + i*(W-P-8)/Math.max(1, pts.length-1), Y = v => H-24 - (v-lo)/sp*(H-44);
+  const d = pts.map((p, i) => (i ? "L" : "M")+X(i).toFixed(1)+" "+Y(p[1]).toFixed(1)).join("");
+  const fm = n => n >= 1000 ? n.toLocaleString("en-IN", { maximumFractionDigits:0 }) : n.toFixed(2);
+  const dt = ts => new Date(ts).toLocaleDateString("en-IN", { day:"numeric", month:"short", timeZone:"Asia/Kolkata" });
+  return '<svg class="mkc" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(label)+'"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>'
+    + '<text x="4" y="14" class="mkt">'+fm(hi)+'</text><text x="4" y="'+(H-22)+'" class="mkt">'+fm(lo)+'</text><text x="'+P+'" y="'+(H-6)+'" class="mkt">'+dt(pts[0][0])+'</text><text x="'+(W-8)+'" y="'+(H-6)+'" text-anchor="end" class="mkt">'+dt(pts[pts.length-1][0])+'</text></svg>';
+}
+function marketsBlock(){
+  mkLoad(); const head = '<section class="mkw" aria-label="Market chart"><h2>Index &amp; currency chart</h2>';
+  if(mk15.state==="idle" || mk15.state==="loading") return head+'<p class="muted">Loading end-of-day data…</p></section>';
+  if(mk15.state==="error") return head+'<div class="empty"><b>Chart data is unavailable.</b>The prebuilt market file could not be loaded; headlines below are unaffected.</div></section>';
+  if(mk15.state==="empty") return head+'<div class="empty"><b>No market data in the latest build.</b>The free data source returned nothing; it will retry on the next scheduled run.</div></section>';
+  const S = mk15.data.series, syms = Object.keys(S), s = S[mk15.sym] || S[syms[0]], pts = (s.points || []).slice(-RANGE_DAYS[mk15.range]);
+  const age = mk15.data.generated ? (Date.now() - Date.parse(mk15.data.generated)) / 864e5 : 99, stale = age > 4;
+  if(!pts.length) return head+'<div class="empty"><b>No data for '+esc(s.name)+'.</b></div></section>';
+  const chg = pts[pts.length-1][1] - pts[0][1], pc = chg / pts[0][1] * 100;
+  return head + '<div class="chips" role="group" aria-label="Series">'+syms.map(k => '<button class="chip'+(k===mk15.sym ? " on" : "")+'" data-v16="mksym:'+esc(k)+'">'+esc(S[k].name)+'</button>').join("")+'</div>'
+    + '<div class="chips" role="group" aria-label="Range">'+Object.keys(RANGE_DAYS).map(k => '<button class="chip'+(k===mk15.range ? " on" : "")+'" data-v16="mkr:'+k+'">'+k+'</button>').join("")+'</div>'
+    + mkSvg(pts, s.name+" closing level, "+mk15.range)
+    + '<p class="small"><b>'+esc(s.name)+'</b> closed at '+pts[pts.length-1][1].toLocaleString("en-IN", { maximumFractionDigits:2 })+' ('+(chg>=0 ? "+" : "")+pc.toFixed(2)+'% over '+mk15.range+')</p>'
+    + '<p class="muted small">End-of-day closes, not real-time quotes; source: '+esc(mk15.data.source || "free public data")+'. Last updated '+esc(mk15.data.generated ? new Date(mk15.data.generated).toLocaleString("en-IN", { timeZone:"Asia/Kolkata" }) : "unknown")+' IST.'+(stale ? ' <b>This data is stale.</b>' : '')+' Not investment advice.</p>'
+    + '<details class="meth"><summary>View as a table</summary><table class="mkt2"><thead><tr><th scope="col">Date</th><th scope="col">Close</th></tr></thead><tbody>'+pts.slice(-10).reverse().map(p => '<tr><td>'+new Date(p[0]).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric", timeZone:"Asia/Kolkata" })+'</td><td>'+p[1].toLocaleString("en-IN", { maximumFractionDigits:2 })+'</td></tr>').join("")+'</tbody></table></details></section>';
+}
+const __cp15 = catPage;
+catPage = function(){ const h = __cp15(); return view.cat==="markets" ? marketsBlock()+h : h; };
+document.addEventListener("click", ev => { const b = ev.target.closest("[data-v16^='mk']"); if(!b) return; const [k, ...r] = b.dataset.v16.split(":"), a = r.join(":"); if(k==="mksym") mk15.sym = a; else if(k==="mkr") mk15.range = a; renderContent(); });
+
+/* ===== v16: capability discovery, export, delete, tombstones for sync, plan copy ===== */
+const TOMB_KEYS = ["news:saved","news:obl","news:follow","news:followev","news:evsaved","news:dlx"];
+const itemKey = (k, v) => k==="news:saved" ? (v && v.link) : k==="news:obl" || k==="news:follow" || k==="news:followev" ? String(v) : null;
+function keysOf(k, val){ if(val==null) return []; if(k==="news:evsaved" || k==="news:dlx") return Object.keys(val); return (Array.isArray(val) ? val : []).map(v => itemKey(k, v)).filter(Boolean); }
+const tombs = () => store.get("news:tomb") || {};
+{ const rawSet = store.set.bind(store);
+  store.set = function(k, v){
+    if(TOMB_KEYS.includes(k)){ try{ const old = new Set(keysOf(k, store.get(k))), now = new Set(keysOf(k, v)), T = tombs(), t = Date.now(); let ch = false;
+      old.forEach(x => { if(!now.has(x)){ T[k+"|"+x] = t; ch = true; } }); now.forEach(x => { if(T[k+"|"+x] && !old.has(x)){ delete T[k+"|"+x]; ch = true; } });
+      Object.keys(T).forEach(x => { if(t - T[x] > 90*864e5){ delete T[x]; ch = true; } }); if(ch) rawSet("news:tomb", T); }catch(e){} }
+    return rawSet(k, v); }; }
+["news:tomb","news:evsaved","news:dlx","news:quiz"].forEach(k => { if(!SYNC_KEYS.includes(k)) SYNC_KEYS.push(k); });
+/* tombstone-aware merge: a deletion made on one device is not resurrected by another device’s older copy */
+function mergeRemote(rem){
+  rem = rem || {}; const T = Object.assign({}, rem["news:tomb"] || {}, tombs()); Object.keys(rem["news:tomb"] || {}).forEach(x => { T[x] = Math.max(T[x] || 0, rem["news:tomb"][x]); });
+  const alive = (k, id) => !T[k+"|"+id];
+  Object.keys(rem).forEach(k => { if(!SYNC_KEYS.includes(k) || k==="news:tomb") return; const loc = store.get(k), r = rem[k];
+    if(TOMB_KEYS.includes(k) && (k==="news:evsaved" || k==="news:dlx")){ const o = Object.assign({}, r, loc && typeof loc==="object" ? loc : {}); Object.keys(o).forEach(id => { if(!alive(k, id)) delete o[id]; }); store.set(k, o); }
+    else if(TOMB_KEYS.includes(k) && Array.isArray(r)){ const seen = new Set(), out = []; (Array.isArray(loc) ? loc : []).concat(r).forEach(v => { const id = itemKey(k, v); if(id==null || seen.has(id) || !alive(k, id)) return; seen.add(id); out.push(v); }); store.set(k, out.slice(0, 500)); }
+    else if(Array.isArray(r)) store.set(k, Array.isArray(loc) ? uniq(r.concat(loc)).slice(0, 500) : r);
+    else if(r && typeof r === "object") store.set(k, Object.assign({}, r, loc && typeof loc === "object" ? loc : {}));
+    else if(loc === null || loc === undefined) store.set(k, r); });
+  rawStoreTomb(T); }
+function rawStoreTomb(T){ try{ localStorage.setItem("news:tomb", JSON.stringify(T)); }catch(e){} }
+
+/* ---- capability discovery ---- */
+const cap = {};
+const CAPS = [["ask","AI explanations","/api/ask?config=1"],["sync","Account sync","/api/sync?config=1"],["push","Push alerts","/api/push?config=1"],["circular","Circular reader","/api/circular?config=1"]];
+async function capProbe(){
+  const staticHost = !/^https?:$/.test(location.protocol) || /\.github\.io$/.test(location.hostname);
+  await Promise.all(CAPS.map(async ([k, , u]) => { if(staticHost){ cap[k] = { s:"unavailable", why:"This host serves static files only; server features need a deployment with functions." }; return; }
+    cap[k] = { s:"loading" }; try{ const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 5000); const r = await fetch(u, { signal:ctl.signal }); clearTimeout(tm);
+      if(r.status===404){ cap[k] = { s:"unavailable", why:"Not deployed on this host." }; return; } if(!r.ok){ cap[k] = { s:"degraded", why:"The service answered with an error ("+r.status+")." }; return; }
+      const j = await r.json().catch(() => null); cap[k] = j && j.enabled ? { s:"enabled" } : j ? { s:"unavailable", why:"Deployed but not configured (no key)." } : { s:"degraded", why:"The service gave an unreadable answer." }; }catch(e){ cap[k] = { s:"degraded", why:"The service could not be reached." }; } }));
+  cap.auth = acct && acct.cid ? { s:"enabled" } : { s:"unavailable", why:"No Google client is configured." };
+}
+function capHtml(){
+  const rows = CAPS.concat([["auth","Google sign-in",""]]).map(([k, l]) => { const c = cap[k] || { s:"loading" }; return '<li data-cap="'+k+'" data-s="'+c.s+'"><b>'+esc(l)+'</b> — '+({ enabled:"enabled", unavailable:"unavailable", degraded:"degraded", loading:"checking…" }[c.s])+(c.why ? '. '+esc(c.why) : '')+'</li>'; }).join("");
+  return '<h3>Capabilities</h3><p class="small muted">Checked from this page, not assumed.</p><ul class="covlist" id="capl">'+rows+'</ul>'
+    + '<h3>Plans</h3><p class="small">Everything is free today. Plus (₹99/month) and Pro (₹299/month) are planned and <b>checkout is not available</b>: no payment is taken and nothing is locked. Entitlements will come from a server after a verified payment.</p>'
+    + '<h3>Your data</h3><p class="small">Saved items, follows, deadlines and settings live on this device'+(acct && acct.tok ? ' and sync to your account' : '')+'.</p><p><button class="chip" data-v16="export">Export my data (JSON)</button> <button class="chip" data-v16="del">Delete my data…</button></p><div id="delbox"></div>';
+}
+const __oa16 = openAbout;
+openAbout = function(){ __oa16(); const b = document.querySelector(".drawer-b"); if(!b) return; const s = document.createElement("div"); s.innerHTML = capHtml(); b.appendChild(s);
+  capProbe().then(() => { const l = document.getElementById("capl"); if(l) l.innerHTML = capHtml().match(/<ul class="covlist" id="capl">([\s\S]*?)<\/ul>/)[1]; }); };
+function exportData(){
+  const o = { exportedAt:new Date().toISOString(), app:"Daily News Intelligence", data:{} };
+  try{ for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(/^news:/.test(k)){ let v = localStorage.getItem(k); try{ v = JSON.parse(v); }catch(e){} o.data[k] = v; } } }catch(e){}
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(o, null, 2)], { type:"application/json" })); a.download = "news-intelligence-export.json"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); return o;
+}
+async function deleteAll(){
+  let remote = "not signed in";
+  if(acct && acct.tok){ try{ const r = await fetch("/api/sync", { method:"DELETE", headers:{ Authorization:"Bearer "+acct.tok } }); remote = r.ok ? "account copy deleted" : "the account copy could not be deleted ("+r.status+")"; }catch(e){ remote = "the account copy could not be reached"; } }
+  try{ const ks = []; for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(/^news:/.test(k)) ks.push(k); } ks.forEach(k => localStorage.removeItem(k)); }catch(e){}
+  return remote;
+}
+document.addEventListener("click", async ev => { const b = ev.target.closest("[data-v16]"); if(!b) return; const k = b.dataset.v16;
+  if(k==="export") exportData();
+  else if(k==="del"){ const d = document.getElementById("delbox"); if(d) d.innerHTML = '<p class="warn small" role="alert"><b>This removes every saved story, event, deadline, follow and setting from this device'+(acct && acct.tok ? ' and asks the server to delete your account copy' : '')+'. It cannot be undone.</b> Export first if unsure.</p><button class="btn" data-v16="delgo">Yes, delete everything</button> <button class="btn sec2" data-v16="delno">Cancel</button>'; }
+  else if(k==="delno"){ const d = document.getElementById("delbox"); if(d) d.innerHTML = ""; }
+  else if(k==="delgo"){ const r = await deleteAll(); const d = document.getElementById("delbox"); if(d) d.innerHTML = '<p role="status"><b>Deleted from this device</b> ('+esc(r)+'). Reloading…</p>'; setTimeout(() => location.reload(), 900); } });
+
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
 function renderSoon(){ if(!rTimer) rTimer = setTimeout(() => { rTimer = null; render(); }, 280); }
@@ -3343,4 +3720,5 @@ window.NI = { view, ranked, rankCtx, auditEvents, eventsFor, groupCounts, classi
 
 </script>
 <script>if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script></body>
+
 </html>

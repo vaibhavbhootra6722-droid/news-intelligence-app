@@ -13,6 +13,10 @@ jobs:
         with: { node-version: 22 }
       - run: node scripts/bundle.mjs
       - run: node scripts/photos.mjs || true
+      - name: markets (end-of-day; carry the previous file over if the free source fails)
+        run: |
+          node scripts/markets.mjs || true
+          if ! grep -q '"points"' out/markets.json 2>/dev/null; then git fetch -q --depth=1 origin data && git show FETCH_HEAD:markets.json > out/markets.json || rm -f out/markets.json; fi
       - name: events (every 6 hours or on manual run; otherwise carry the previous file over)
         env: { TICKETMASTER_KEY: "${{ secrets.TICKETMASTER_KEY }}" }
         run: |

@@ -19,13 +19,24 @@
 8. **Pipeline**: `scripts/events.mjs` (canonical schema: id, name, category, performer, series, organizer, venue, city, country, IANA tz, start/end, precision, status, provenance, checked, url, media credit). Sources: **Ticketmaster Discovery** (activates when repo secret `TICKETMASTER_KEY` exists — free key) and **Nager.Date** public holidays (date-only; India is *not* covered by it).
 9. Layout: no horizontal overflow from 320 to 2560 px; phone menu tap fix; image cache in the service worker.
 
+10. **Story detail** (v13): What happened / Why it matters / What changed / Sources, each only when evidence supports it; syndicated copies flagged; figure changes (e.g. 12 → 31) from timestamps; methodology behind a control; shareable `#s=` link, Back closes, scroll restored.
+11. **Reading mode**: full-screen cards from the edition (progress, Back/Next, keyboard, Save, Coverage, Listen); narration stops on card or edition change. **Quiz** "Check what you learned": at most 3 questions computed from loaded facts, explanation + evidence link, dated history.
+12. **Saved library**: Stories / Events / Deadlines; stories reopen in-app by stored id, or as a snapshot with the original link; cancelled/rescheduled events and amended deadlines are kept with status.
+13. **Explore workspace**: one search box, operator help, removable filter chips, date scope, keyboard navigation, query kept when a story closes, distinct "no stories collected" vs "no matches", regional/language boundary stated.
+14. **My Desk**: evidence records (authority, type, reference, issue date, applicability, effective date, status); Previous/New rule shown only with a linked official document; media coverage as supporting list. **Deadlines**: baseline vs verified exception (you record date + https notice link; checked-at and history kept), .ics export; reminders honestly marked not enabled.
+15. **Markets**: `scripts/markets.mjs` (Yahoo public chart endpoint, end-of-day, keyless) -> `markets.json`; SVG line chart with range buttons, accessible table, stale/error/no-data states, "not real-time".
+16. **Account/data**: capability discovery in About (probes `/api/*?config=1`; shows enabled/unavailable/degraded), export (JSON), delete (explicit confirmation, also asks the server when signed in), tombstones so a deletion is not resurrected by sync, Plus/Pro copy with checkout unavailable.
+
 ## Evidence
-`node tests/engine.test.js` 76/76 · `classify` 184/184 · `editorial` 19/19 · `v3` 79/79 (UI) · `v11` 10/10 · `v12` 17/17 · layout audit (9 widths × 5 pages: scrollWidth = viewport). Screenshots: `tests/shot-v11-landing.png`, `shot-v12-events-390.png`, `shot-v12-events-1440.png`. Lab runs only; no field Web Vitals exist yet.
+`engine` 76/76 · `classify` 184/184 · `editorial` 19/19 · `v3` 79/79 · `v11` 10/10 · `v12` 17/17 · `v13` all · `v14` (reading mode, quiz, saved, explore, desk, deadlines, markets, capabilities, export/delete, tombstones, migration run twice, SW never caches /api) all passed · layout audit 320-2560 px: no page-level horizontal overflow (strips scroll by design).
 
 ## Not done / limitations (honest)
-- **No concerts or tours are listed today**: they need `TICKETMASTER_KEY` (free). Until then Events shows only national holidays for 5 countries and says so.
-- Not built in this release: shared story detail rebuilt into What happened / Why it matters / What changed / Sources; Explore search workspace changes; evidence-linked regulator records and deadlines with previous/new rule; market charts (no licensed free feed); quiz; subscriptions and checkout; two-device sync tests (no server on Pages); regional/language editions; real-device checks.
-- Migration: no existing storage key was renamed or removed; new keys (`news:livemode`, `news:evsaved`, `news:evfollow`, `news:evtz`, `news:landpause`, `news:events`) are additive. Idempotence run with pre-upgrade data was **not** executed.
+- **Concerts/tours** need the free `TICKETMASTER_KEY` secret; until then Events lists national holidays for 5 countries only.
+- **Markets**: the Yahoo endpoint is unofficial and was not reachable from the build sandbox, so the Action step is untested live; if it fails the chart shows its error state and headlines are unaffected.
+- **AI, sync, push, Google sign-in, payments**: need a server; GitHub Pages is static. The app detects this and says so. Checkout is not built; nothing is locked.
+- **Deadline exceptions** are recorded by you (no free machine-readable official source exists); reminders need push + sign-in.
+- Not testable here: real devices, two-device sync, field Web Vitals.
+- Migration: no key renamed or removed; new keys (`news:tomb`, `news:dlx`, `news:quiz`, `news:livemode`, `news:evsaved`, `news:evfollow`, `news:evtz`) are additive; pre-upgrade data run twice is unchanged.
 
 ## Rollback
-`git revert` the release commit(s); the service worker version (`ni-shell-6`) changes so clients refetch. The `data` branch is rebuilt every 20 min and can be ignored by clients (relay fallback).
+`git revert` the release commit(s); the service worker version (`ni-shell-7`) changes so clients refetch. The `data` branch is rebuilt every 20 min and can be ignored by clients (relay fallback).
