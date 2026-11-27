@@ -544,6 +544,46 @@ details summary{cursor:pointer;color:var(--accent);font-size:.84rem}.chron{margi
 .bpl{margin:6px 0 4px;padding-left:18px}.bpl li{margin:6px 0;line-height:1.4}.bigp{background:var(--panel);border-radius:14px;padding:12px 16px;margin:0 0 16px}
 .cmgph{height:120px;border-radius:12px;margin:6px 0 10px}
 .circ{width:100%;border-collapse:collapse;font-size:.85rem;margin:8px 0}.circ th{text-align:left;width:30%;color:var(--soft);font-weight:600;padding:5px 8px 5px 0;vertical-align:top}.circ td{padding:5px 0;border-top:1px solid var(--panel2)}.circ tr:first-child td,.circ tr:first-child th{border-top:0}
+/* ===== v10: image-led pages + motion ===== */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0;transform:scale(1.06)}to{opacity:1;transform:none}}
+@keyframes shimmer{to{background-position:-200% 0}}
+@keyframes drawin{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes scrimin{from{opacity:0}to{opacity:1}}
+#content>*{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+#content>*:nth-child(2){animation-delay:.06s}#content>*:nth-child(3){animation-delay:.12s}#content>*:nth-child(4){animation-delay:.18s}#content>*:nth-child(5){animation-delay:.24s}#content>*:nth-child(n+6){animation-delay:.3s}
+.feed>li,.rows>li,.strip>li,.tiles>.tile{animation:rise .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*45ms)}
+.rows>li:nth-child(2){animation-delay:.05s}.rows>li:nth-child(3){animation-delay:.1s}.rows>li:nth-child(4){animation-delay:.15s}.rows>li:nth-child(n+5){animation-delay:.2s}
+.strip>li:nth-child(2){animation-delay:.06s}.strip>li:nth-child(3){animation-delay:.12s}.strip>li:nth-child(4){animation-delay:.18s}.strip>li:nth-child(n+5){animation-delay:.24s}
+.tiles>.tile:nth-child(2){animation-delay:.05s}.tiles>.tile:nth-child(3){animation-delay:.1s}.tiles>.tile:nth-child(4){animation-delay:.15s}.tiles>.tile:nth-child(n+5){animation-delay:.2s}
+.tph.has img,.sth.has img,.th.has img,.cbg.has img{animation:fadein .8s cubic-bezier(.2,.7,.2,1) both}
+.tph:not(.has) .tgrad,.sth:not(.has) .tgrad{background:linear-gradient(90deg,var(--panel2) 20%,var(--panel) 50%,var(--panel2) 80%);background-size:200% 100%;animation:shimmer 1.5s linear infinite}
+.drawer{animation:drawin .32s cubic-bezier(.2,.7,.2,1) both}.scrim,.dscrim{animation:scrimin .25s ease both}
+.tph img,.sth img,.th img{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.stile:hover .sth img,.tile:hover .tph img,.crowb:hover .timg img,.bigb:hover .bimg img,.row:hover .th img{transform:scale(1.07)}
+.stile,.tile,.crowb,.bigb,.row,.btn,.chip{transition:transform .18s ease,background-color .2s ease,box-shadow .2s ease}
+.stile:active,.crowb:active,.bigb:active,.row:active,.btn:active,.chip:active{transform:scale(.97)}
+.tile:hover,.stile:hover{box-shadow:0 8px 24px rgba(0,0,0,.35);transform:translateY(-2px)}
+/* topic page: banner, hero card, image rows */
+.banner{height:150px;border-radius:16px;margin:0 0 14px}
+.banner .bt{position:absolute;left:16px;bottom:12px;z-index:3;color:#fff;font-family:var(--serif);font-size:1.5rem;font-weight:650;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.feed{list-style:none;margin:0;padding:0}
+.big{margin:0 0 12px;list-style:none}
+.bigb{display:block;position:relative;width:100%;height:230px;border-radius:16px;overflow:hidden;text-align:left;padding:0;color:#fff;background:var(--panel2)}
+.bimg{position:absolute!important;inset:0}
+.bov{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:14px 16px;display:flex;flex-direction:column;gap:5px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.78))}
+.bov .hl{color:#fff;font-family:var(--serif);font-size:1.25rem;line-height:1.2;font-weight:650}
+.bov .meta,.bov .kick{color:rgba(255,255,255,.85)}
+.crow{list-style:none;margin:0 0 10px}
+.crowb{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px;border-radius:14px;background:var(--panel)}
+.timg{flex:0 0 96px;width:96px;height:76px;border-radius:10px;overflow:hidden;position:relative}
+.ctx{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ctx .hl{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;line-height:1.3}
+.ctx .meta{font-size:.74rem;color:var(--soft)}
+/* thumbnails on every list */
+.th{flex:0 0 84px;width:84px;height:68px;border-radius:10px;position:relative}
+.th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 <body>
@@ -1753,7 +1793,8 @@ const AWAY_LABEL = { visit:"Since last visit", morning:"Since morning", yesterda
 const savedLinks = () => new Set((store.get("news:saved")||[]).map(x => x.link));
 function row(c, o){
   o = o || {}; const rd = readSet().has(c.id), sv = savedLinks().has(c.lead.link);
-  return '<li class="row'+(rd ? " read" : "")+(o.thumb ? " hasth" : "")+'">'+(o.thumb ? '<span class="th" data-th="'+c.id+'" aria-hidden="true"></span>' : '')+'<button class="rowmain" '+openAttr(c)+'>'
+  const th = o.thumb !== false;
+  return '<li class="row'+(rd ? " read" : "")+(th ? " hasth" : "")+'">'+(th ? '<span class="th" data-th="'+c.id+'" data-tp="'+tpKey(c.group)+'" data-cr="0" data-alt="" aria-hidden="true"></span>' : '')+'<button class="rowmain" '+openAttr(c)+'>'
     + '<span class="hl">'+esc(c.lead.title)+'</span>'
     + '<span class="cap">'+(o.area ? esc(catShort(c.group))+' · ' : '')+esc(c.lead.source)+' · '+fmtTime(c.first)+' IST'+(c.sev>=1 ? ' <span class="dotc" title="Severe: flagged by words such as killed, blast, earthquake in the headline"></span>' : '')+(c.tier===1 ? ' · <b class="off">Official</b>' : '')+'</span></button>'
     + '<button class="iconbtn sv" data-v3="save:'+c.id+'" aria-pressed="'+sv+'" aria-label="'+(sv ? "Remove from saved" : "Save story")+'">'+icon("i-bm")+'</button></li>';
@@ -2343,8 +2384,9 @@ async function hydrateTopics(){
   const els = [...document.querySelectorAll("[data-tp]")].filter(el => !el.classList.contains("has")), keys = [...new Set(els.map(e => e.dataset.tp))], got = {};
   let i = 0; await Promise.all(Array.from({ length:4 }, async () => { while(i < keys.length){ const k = keys[i++]; got[k] = await topicPhoto(k); } }));
   els.forEach(el => { const im = got[el.dataset.tp]; if(!im || el.classList.contains("has")) return;
-    el.innerHTML = '<img src="'+esc(im.url)+'" alt="'+esc(el.dataset.alt || im.alt)+'" loading="lazy" decoding="async" width="'+im.w+'" height="'+im.h+'">'
-      + (el.dataset.cr==="0" ? "" : '<a class="cr" href="'+esc(im.page || "https://commons.wikimedia.org")+'" target="_blank" rel="noopener noreferrer" title="Photo: '+esc(im.by)+' · '+esc(im.lic)+'">Photo: '+esc(im.by.slice(0,28))+' · '+esc(im.lic)+'</a>');
+    const g = el.querySelector(".tgrad"); if(g) g.remove();
+    el.insertAdjacentHTML("afterbegin", '<img src="'+esc(im.url)+'" alt="'+esc(el.dataset.alt || im.alt)+'" loading="lazy" decoding="async" width="'+im.w+'" height="'+im.h+'">'
+      + (el.dataset.cr==="0" ? "" : '<a class="cr" href="'+esc(im.page || "https://commons.wikimedia.org")+'" target="_blank" rel="noopener noreferrer" title="Photo: '+esc(im.by)+' · '+esc(im.lic)+'">Photo: '+esc(im.by.slice(0,28))+' · '+esc(im.lic)+'</a>'));
     el.classList.add("has"); });
 }
 const __hp5 = hydratePhotos;
@@ -2485,6 +2527,24 @@ function comingBlock(){
     + '<p class="muted small">Sources: '+esc(d.sources.holidays)+(sp.length ? ' · '+esc(d.sources.sports) : '')+'. Dates can shift (moon-sighted festivals) and fixtures change: verify with the organiser. Concerts are not covered — there is no free reliable source. Photo: Wikimedia Commons, see credit.</p></section>'; }
 const __lp9 = livePage;
 livePage = function(){ return __lp9() + comingBlock(); };
+
+/* ================= v10: image-led topic pages, banners everywhere, motion ================= */
+const crowTag = c => (c.tier===1 ? '<b class="off">Official</b>' : '') + (c.sev>=1 ? '<span class="dotc" title="Severe"></span>' : '');
+function rowHtml(c, i){
+  const k = tpKey(c.group), thumb = '<span class="timg tph" data-th="'+c.id+'" data-tp="'+k+'" data-cr="0" data-alt=""><span class="tgrad"></span></span>';
+  if(i === 0) return '<li class="big" style="--i:0"><button class="bigb" '+openAttr(c)+'>'+thumb.replace('timg tph','bimg tph')+'<span class="bov"><span class="kick">'+esc(rowLabel(c))+'</span><span class="hl">'+esc(c.lead.title)+'</span><span class="meta">'+esc(c.lead.source)+' · '+fmtTime(c.first)+' IST '+crowTag(c)+'</span></span></button></li>';
+  return '<li class="crow" style="--i:'+Math.min(i, 12)+'"><button class="crowb" '+openAttr(c)+'>'+thumb+'<span class="ctx"><span class="hl">'+esc(c.lead.title)+'</span><span class="meta"><span class="src">'+esc(c.lead.source)+'</span> · '+fmtTime(c.first)+' '+crowTag(c)+'</span></span></button></li>';
+}
+const BANNER_KEY = { top:"world", live:"world", bfsi:"econ", state:"india" };
+const bannerFor = (cat, label) => '<div class="banner tph" data-tp="'+(BANNER_KEY[cat] || tpKey(cat))+'" data-alt=""><span class="tgrad"></span>'+(label ? '<span class="bt">'+esc(label)+'</span>' : '')+'</div>';
+const __cp = catPage;
+catPage = function(){ const h = __cp(); return bannerFor(view.cat, view.cat==="top" ? "Top stories" : catLabel(view.cat)) + h; };
+const __lp10 = livePage; livePage = function(){ return bannerFor("live", "Live world events") + __lp10(); };
+const __bp10 = bfsiPage; bfsiPage = function(){ return bannerFor("bfsi", "My Desk") + __bp10(); };
+const __dp10 = typeof deepPage === "function" ? deepPage : null; if(__dp10) deepPage = function(){ return bannerFor("top", "Deep dive") + __dp10(); };
+const __rc10 = renderContent;
+renderContent = function(){ __rc10(); const p = view.page;
+  if(p !== "home" && p !== "topics" && p !== "plans" && document.querySelector("#content [data-th],#content [data-tp]")) setTimeout(hydratePhotos, 0); };
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
