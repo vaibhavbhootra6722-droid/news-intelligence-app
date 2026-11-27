@@ -1,4 +1,4 @@
-const C = "ni-shell-8", IMG = "ni-img-1", DATA = "ni-data-1";
+const C = "ni-shell-9", IMG = "ni-img-1", DATA = "ni-data-1";
 self.addEventListener("push", e => { let d = {}; try { d = e.data.json(); } catch (x) {} e.waitUntil(self.registration.showNotification(d.title || "Daily News Intelligence", { body: d.body || "", icon: "icon.svg", badge: "icon.svg", data: { url: d.url || "/" } })); });
 self.addEventListener("notificationclick", e => { e.notification.close(); e.waitUntil(clients.matchAll({ type: "window" }).then(l => { for (const c of l) { if ("focus" in c) return c.focus(); } return clients.openWindow(e.notification.data && e.notification.data.url || "/"); })); });
 self.addEventListener("install", e => { e.waitUntil(caches.open(C).then(c => c.addAll(["./", "icon.svg"]))); self.skipWaiting(); });

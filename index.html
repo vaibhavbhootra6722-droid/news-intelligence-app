@@ -696,6 +696,9 @@ img,svg,video,canvas{max-width:100%}
 .toast17{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:95;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;max-width:min(92vw,520px);font-size:.88rem;box-shadow:0 6px 24px rgba(0,0,0,.35)}.toast17[hidden]{display:none}
 .obrow input[type=time]{padding:6px 10px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.mrow{list-style:none;margin:0;padding:0;display:grid;gap:6px}.mrow li{display:flex;gap:10px;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0}.mrow b{margin-left:auto}.up{color:var(--pos)}.dn{color:var(--neg)}
+.l1{padding:10px 12px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:8px}
+.nf18{display:flex;gap:8px;margin-top:6px}.nf18 input{flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink)}.note18{font-style:italic}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 
@@ -3318,6 +3321,67 @@ function toast17(html, id){ let t = document.getElementById(id); if(!t){ t = doc
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){ const had = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener("controllerchange", () => { if(had) toast17('A newer version is ready. <button class="linkbtn" onclick="location.reload()">Reload</button> <button class="linkbtn" onclick="this.parentNode.hidden=true">Later</button>', "upd17"); }); }
 function netNote(){ if(navigator.onLine){ const t = document.getElementById("off17"); if(t) t.hidden = true; return; } toast17('You are offline. Showing saved news'+(view.at ? ' from the last successful refresh at '+esc(fmtTime(view.at))+' IST' : '')+'. <button class="linkbtn" onclick="location.reload()">Retry</button>', "off17"); }
 addEventListener("offline", netNote); addEventListener("online", netNote); netNote();
+
+/* ===== v18: market snapshot + what to watch (Today), ten-second summary, professional report export, notes + history ===== */
+function nseStatus(){ const p = new Intl.DateTimeFormat("en-GB", { timeZone:"Asia/Kolkata", weekday:"short", hour:"2-digit", minute:"2-digit", hour12:false }).formatToParts(new Date()), g = t => p.find(x => x.type===t).value, mins = +g("hour")*60 + +g("minute"), wk = !["Sat","Sun"].includes(g("weekday")); return wk && mins >= 555 && mins <= 930 ? "NSE session hours (9:15–15:30 IST)" : "NSE outside session hours"; }
+function marketSnap(){
+  mkLoad(); if(mk15.state!=="ok" || !mk15.data) return mk15.state==="idle" || mk15.state==="loading" ? "" : '<section class="sec msnap" aria-label="Market snapshot"><div class="sec-h"><h2>Markets</h2></div><p class="muted small">Market data is unavailable right now; headlines are unaffected.</p></section>';
+  const S = mk15.data.series, rows = Object.keys(S).slice(0, 5).map(k => { const p = (S[k].points || []).slice(-2); if(p.length < 2) return ""; const ch = (p[1][1]-p[0][1])/p[0][1]*100;
+    return '<li><span>'+esc(S[k].name)+'</span><b>'+p[1][1].toLocaleString("en-IN", { maximumFractionDigits:2 })+'</b><span class="'+(ch>=0 ? "up" : "dn")+'">'+(ch>=0 ? "▲ +" : "▼ ")+ch.toFixed(2)+'%</span></li>'; }).join("");
+  if(!rows) return "";
+  const last = Math.max(...Object.keys(S).map(k => (S[k].points || []).slice(-1)[0] ? S[k].points.slice(-1)[0][0] : 0));
+  return '<section class="sec msnap" aria-label="Market snapshot"><div class="sec-h"><h2>Markets</h2><button class="linkbtn" data-cat="markets">Chart</button></div><ul class="mrow">'+rows+'</ul><p class="muted small">Delayed end-of-day close (latest '+esc(new Date(last).toLocaleDateString("en-IN", { day:"numeric", month:"short", timeZone:"Asia/Kolkata" }))+'), not real-time. '+nseStatus()+'. Source: '+esc(mk15.data.source || "free public data")+'.</p></section>';
+}
+function watchNext(){
+  const from = new Date(Date.parse((view.date || todayIST())+"T00:00:00Z")), lim = from.getTime() + 14*864e5, out = [];
+  DEADLINES.forEach((d, i) => { const w = nextDates(d, from); if(w && w.getTime() <= lim){ const ex = (dlx()[i] || []).slice(-1)[0]; out.push({ t:ex ? Date.parse(ex.date+"T00:00:00Z") : w.getTime(), h:d.t, m:d.a+(ex ? " · verified exception on record" : " · standard date, check for extensions"), k:"Deadline" }); } });
+  if(evx.state==="idle") evLoad(); const ev = (evx.data && evx.data.events) || [];
+  ev.filter(e => e.localDate && e.status!=="canceled").forEach(e => { const t = Date.parse(e.localDate+"T00:00:00Z"); if(t >= from.getTime() && t <= lim) out.push({ t, h:e.name, m:[e.city, e.category].filter(Boolean).join(" · ")+" · listed event", k:"Event" }); });
+  out.sort((a, b) => a.t-b.t); if(!out.length) return "";
+  const f = t => new Intl.DateTimeFormat("en-IN", { day:"numeric", month:"short", timeZone:"UTC" }).format(new Date(t));
+  return '<section class="sec watchn" aria-label="What to watch next"><div class="sec-h"><h2>What to watch next</h2></div><ul class="rows">'+out.slice(0, 6).map(x => '<li class="row"><div class="rowmain"><span class="hl">'+esc(x.h)+'</span><span class="cap"><b>'+f(x.t)+'</b> · '+esc(x.k)+' · '+esc(x.m)+'</span></div></li>').join("")+'</ul><p class="muted small">Only dated items from published schedules are listed. Nothing here is a forecast.</p></section>';
+}
+const __rc18 = renderContent;
+renderContent = function(){ __rc18(); if(view.page==="home" && view.date && view.clusters.length){ const c = document.querySelector("#content"); if(!c.querySelector(".msnap")){ const m = marketSnap(), anchor = c.querySelector(".foryou") || c.querySelector(".done"); if(m){ anchor ? anchor.insertAdjacentHTML("beforebegin", m) : c.insertAdjacentHTML("beforeend", m); } }
+  if(!c.querySelector(".watchn")){ const w = watchNext(), anchor = c.querySelector(".done"); if(w){ anchor ? anchor.insertAdjacentHTML("beforebegin", w) : c.insertAdjacentHTML("beforeend", w); } } } };
+/* a refresh when late data lands */
+setInterval(() => { if(view.page==="home" && !document.hidden && (evx.state==="ok" && !document.querySelector("#content .watchn") || mk15.state==="ok" && !document.querySelector("#content .msnap"))) renderContent(); }, 2500);
+/* Level 1: understand in ten seconds — only facts the reports state */
+const __od18 = openDetail;
+openDetail = function(id){ __od18(id); const c = byId(id), b = document.querySelector(".drawer-b"); if(!c || !b || b.querySelector(".l1")) return; const f = c.reports.slice().sort((a, b) => a.ts-b.ts)[0], h = b.querySelector("h2");
+  if(h) h.insertAdjacentHTML("afterend", '<p class="l1"><b>In ten seconds:</b> '+esc(c.lead.title)+' — first reported by '+esc(f.source)+' at '+esc(fmtTime(f.ts))+' IST; '+c.indep+' independent outlet'+(c.indep===1 ? "" : "s")+' so far.</p>'); };
+/* professional report for the loaded edition */
+function reportData(){
+  const recs = ranked().filter(c => c.group==="bfsi" && (c.tier===1 || regStatus(c.lead.title)!=="Status not stated")).slice(0, 12).map(evRecord), from = new Date(Date.parse((view.date || todayIST())+"T00:00:00Z")), lim = from.getTime() + 21*864e5;
+  const dl = DEADLINES.map((d, i) => ({ d, i, w:nextDates(d, from) })).filter(x => x.w && x.w.getTime() <= lim).sort((a, b) => a.w-b.w);
+  const ind = ranked().filter(c => c.group==="bfsi" && !recs.some(r => r.c.id===c.id)).slice(0, 8);
+  return { recs, dl, ind };
+}
+function reportMd(){
+  const { recs, dl, ind } = reportData(), d = view.date, L = ["# BFSI & CA Intelligence — edition of "+d, "", "_Built from the stories loaded for this edition only; not a complete weekly record. Verify every item against the official document. Not legal or audit advice._", "", "## Regulatory updates"];
+  recs.forEach(r => L.push("- **"+r.c.lead.title+"** — "+(r.auth || "authority not stated")+(r.type ? ", "+r.type : "")+(r.ref ? ", ref "+r.ref : "")+"; status: "+r.status+"; effective: "+(r.eff || "not stated")+". Source: "+safeUrl((r.official[0] || r.c.lead).link)));
+  if(!recs.length) L.push("- None found in this edition.");
+  L.push("", "## Upcoming standard deadlines (next 21 days; extensions may apply)"); dl.forEach(x => { const ex = (dlx()[x.i] || []).slice(-1)[0]; L.push("- "+(ex ? ex.date+" (verified exception; baseline "+x.w.toISOString().slice(0, 10)+")" : x.w.toISOString().slice(0, 10))+" — "+x.d.t+" ("+x.d.a+") — "+PORTAL[x.d.a]); }); if(!dl.length) L.push("- None in window.");
+  L.push("", "## Industry developments"); ind.forEach(c => L.push("- "+c.lead.title+" — "+c.lead.source+" "+safeUrl(c.lead.link))); if(!ind.length) L.push("- None.");
+  L.push("", "## Items needing further reading", ...recs.filter(r => !r.authOfficial).map(r => "- "+r.c.lead.title+" (media report only — find the official document)")); return L.join("\n");
+}
+function download18(name, type, text){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+const __bp18 = bfsiPage;
+bfsiPage = function(){ const h = __bp18(); return h.replace('</div>', '</div><p class="muted small" style="margin:-4px 0 10px">Professional report for this edition: <button class="linkbtn" data-v18="rep-md">Download (.md)</button> · <button class="linkbtn" data-v18="rep-print">Print / save as PDF</button></p>'); };
+/* notes + reading history in Saved */
+const notes18 = () => store.get("news:notes") || {};
+const __sp18 = savedPage;
+savedPage = function(){ let h = __sp18(); const st = store.get("news:saved") || [], N = notes18();
+  h = h.replace(/(<button class="hl linkbtn" data-v14="svopen:(\d+)"[\s\S]*?<\/span>)(<\/div><button class="iconbtn" data-unsave)/g, (m, a, i, z) => { const x = st[+i]; if(!x) return m; const n = N[x.link]; return a+(n ? '<span class="cap note18">Note: '+esc(n)+'</span>' : '')+'<span class="cap"><button class="linkbtn" data-v18="note:'+i+'">'+(n ? "Edit note" : "Add note")+'</button></span>'+z; });
+  const rd = [...readSet()].map(id => view.clusters.find(c => c.id===id)).filter(Boolean).slice(-8).reverse();
+  if(rd.length && sv14.tab==="all") h += '<section class="sec"><div class="sec-h"><h2>Recently read (this edition)</h2></div><ul class="rows">'+rd.map(c => '<li class="row"><div class="rowmain"><button class="hl linkbtn" '+openAttr(c)+' style="text-align:left">'+esc(c.lead.title)+'</button></div></li>').join("")+'</ul></section>';
+  return h; };
+document.addEventListener("click", ev => { const b = ev.target.closest("[data-v18]"); if(!b) return; const [k, ...r] = b.dataset.v18.split(":"), a = r.join(":");
+  if(k==="rep-md") download18("bfsi-report-"+view.date+".md", "text/markdown", reportMd());
+  else if(k==="rep-print"){ const md = reportMd().split("\n").map(l => l.startsWith("# ") ? "<h1>"+esc(l.slice(2))+"</h1>" : l.startsWith("## ") ? "<h2>"+esc(l.slice(3))+"</h2>" : l.startsWith("- ") ? "<p>• "+esc(l.slice(2))+"</p>" : l ? "<p>"+esc(l)+"</p>" : "").join(""); const u = URL.createObjectURL(new Blob(['<!doctype html><meta charset="utf-8"><title>BFSI report</title><body style="font:14px/1.5 system-ui;max-width:760px;margin:24px auto;padding:0 16px">'+md+'</body>'], { type:"text/html" })); window.open(u, "_blank", "noopener"); setTimeout(() => URL.revokeObjectURL(u), 60000); }
+  else if(k==="note"){ const s = store.get("news:saved") || [], x = s[+a]; if(!x) return; const cur = notes18()[x.link] || ""; const row = b.closest(".row"); if(row.querySelector(".nf18")) return; b.closest(".cap").insertAdjacentHTML("afterend", '<form class="nf18" data-l="'+esc(x.link)+'"><label class="sr" for="nt'+a+'">Note</label><input id="nt'+a+'" maxlength="280" value="'+esc(cur)+'"><button class="btn" type="submit">Save note</button></form>'); const i = row.querySelector(".nf18 input"); if(i) i.focus(); }
+});
+document.addEventListener("submit", ev => { const f = ev.target.closest(".nf18"); if(!f) return; ev.preventDefault(); const N = notes18(), v = f.querySelector("input").value.trim(); if(v) N[f.dataset.l] = v; else delete N[f.dataset.l]; store.set("news:notes", N); renderContent(); });
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
