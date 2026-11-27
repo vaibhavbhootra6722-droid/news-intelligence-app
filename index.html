@@ -2515,7 +2515,8 @@ async function paintPush(msg){ const box = document.getElementById("push-box"); 
     + (denied ? "" : sub ? '<button class="btn sec2" data-v3="push-off">Turn alerts off</button>' : '<button class="btn sec2" data-v3="push-on">Turn on alerts</button>')
     + '<p class="muted small">You get a notification when RBI or SEBI publish something new (up to 3 per check). No account needed. On iPhone, add the app to your Home Screen first.</p>'; }
 const __os8 = openSettings;
-openSettings = function(){ __os8(); const body = document.querySelector(".setl"); if(!body || !pushOK()) return; const d = document.createElement("div"); d.innerHTML = '<h3>Alerts</h3><div id="push-box"></div>'; body.appendChild(d); paintPush(); };
+openSettings = function(){ __os8(); const body = document.querySelector(".setl"); if(!body || !pushOK()) return;
+  fetch("/api/push?config=1").then(r => { if(!r.ok) throw 0; return r.json(); }).then(j => { if(!j || !j.key || !document.querySelector(".setl")) return; const d = document.createElement("div"); d.innerHTML = '<h3>Alerts</h3><div id="push-box"></div>'; document.querySelector(".setl").appendChild(d); paintPush(); }).catch(() => {}); };
 document.addEventListener("click", async e => { const b = e.target.closest("[data-v3]"); if(!b) return; const a = b.dataset.v3;
   if(a === "push-on"){ try{ const perm = await Notification.requestPermission(); if(perm !== "granted"){ paintPush("Permission was not granted."); return; }
       const cfg = await (await fetch("/api/push?config=1")).json(); const reg = await navigator.serviceWorker.ready;

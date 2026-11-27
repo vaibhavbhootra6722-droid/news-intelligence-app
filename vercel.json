@@ -1,0 +1,4 @@
+{
+  "rewrites": [{ "source": "/gnews/:path*", "destination": "https://news.google.com/:path*" }],
+  "functions": { "api/*.mjs": { "maxDuration": 30 } }
+}
