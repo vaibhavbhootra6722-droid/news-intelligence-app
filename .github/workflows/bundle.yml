@@ -22,6 +22,10 @@ jobs:
         run: |
           node scripts/summaries.mjs || true
           if [ ! -f out/summaries.json ]; then git fetch -q --depth=1 origin data && git show FETCH_HEAD:summaries.json > out/summaries.json || rm -f out/summaries.json; fi
+      - name: Official sources (RBI/SEBI/PIB/tool release notes; fail-safe, carries previous file over)
+        run: |
+          node scripts/official.mjs || true
+          if [ ! -f out/official.json ]; then git fetch -q --depth=1 origin data && git show FETCH_HEAD:official.json > out/official.json || rm -f out/official.json; fi
       - name: events (every 6 hours or on manual run; otherwise carry the previous file over)
         env: { TICKETMASTER_KEY: "${{ secrets.TICKETMASTER_KEY }}" }
         run: |

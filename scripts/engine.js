@@ -467,10 +467,10 @@ function auditEvents(events){
 
 /* ---------- v3: reading modes (real word budgets), away windows, regulatory status ---------- */
 const MODES = {
-  "60":  { label:"60 seconds", lo:120, hi:160, min:4, max:9,  cap:2 },
-  "180": { label:"3 minutes",  lo:400, hi:550, min:10, max:34, cap:4 },
-  "300": { label:"5 minutes",  lo:700, hi:900, min:16, max:60, cap:6 },
-  "600": { label:"10 minutes", lo:1400, hi:1800, min:24, max:90, cap:8 }
+  "60":  { label:"60 seconds", lo:90,  hi:170, min:3,  max:4,  cap:2 },
+  "180": { label:"3 minutes",  lo:180, hi:360, min:5,  max:7,  cap:2 },
+  "300": { label:"5 minutes",  lo:280, hi:560, min:8,  max:10, cap:3 },
+  "600": { label:"10 minutes", lo:420, hi:900, min:12, max:16, cap:4 }
 };
 // Finite brief for one mode: unique events, best-ranked first, per-topic cap, stops at the word budget, never pads.
 // Events below a quality floor are skipped (unless severe), so a quiet day gives a SHORTER brief, not filler.

@@ -703,9 +703,10 @@ img,svg,video,canvas{max-width:100%}
 .aisum{padding:10px 12px;border-left:3px solid var(--notice);background:var(--panel2);border-radius:8px;margin:10px 0}.aisum p{margin:4px 0}
 .leadimg{max-height:380px}
 @media (min-width:1000px){.lead:has(.leadimg:not([hidden])){display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:stretch}.lead:has(.leadimg:not([hidden])) .leadimg{height:100%;max-height:none;min-height:300px}.lead:has(.leadimg:not([hidden])) .leadbody{padding:28px;display:flex;flex-direction:column;justify-content:center}.leadhl{font-size:clamp(1.6rem,2.2vw,2.2rem)}}
+.freshbar{padding:4px 0 10px;border-bottom:1px solid var(--line,rgba(128,128,128,.25));margin-bottom:12px}
+.offl{list-style:none;margin:0 0 8px;padding:0}.offl li{padding:6px 0;line-height:1.4}.offl a{color:inherit;font-weight:600}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
-
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
@@ -1256,10 +1257,10 @@ function auditEvents(events){
 
 /* ---------- v3: reading modes (real word budgets), away windows, regulatory status ---------- */
 const MODES = {
-  "60":  { label:"60 seconds", lo:120, hi:160, min:4, max:9,  cap:2 },
-  "180": { label:"3 minutes",  lo:400, hi:550, min:10, max:34, cap:4 },
-  "300": { label:"5 minutes",  lo:700, hi:900, min:16, max:60, cap:6 },
-  "600": { label:"10 minutes", lo:1400, hi:1800, min:24, max:90, cap:8 }
+  "60":  { label:"60 seconds", lo:90,  hi:170, min:3,  max:4,  cap:2 },
+  "180": { label:"3 minutes",  lo:180, hi:360, min:5,  max:7,  cap:2 },
+  "300": { label:"5 minutes",  lo:280, hi:560, min:8,  max:10, cap:3 },
+  "600": { label:"10 minutes", lo:420, hi:900, min:12, max:16, cap:4 }
 };
 // Finite brief for one mode: unique events, best-ranked first, per-topic cap, stops at the word budget, never pads.
 // Events below a quality floor are skipped (unless severe), so a quiet day gives a SHORTER brief, not filler.
@@ -3414,6 +3415,119 @@ openDetail = function(id){ suLoad(); __od19(id); const c = byId(id), b = documen
   if(a) a.insertAdjacentHTML("afterend", '<div class="aisum"><p><b>What happened.</b> '+esc(s.w)+'</p>'+(s.y ? '<p><b>Why it matters.</b> '+esc(s.y)+'</p>' : '')+'<p class="muted small">AI summary written only from the headlines below (may be imperfect). Open the sources to confirm.</p></div>'); };
 suLoad();
 
+/* ===== v20: Personal Edition — opens into the edition, one finite briefing, Mumbai today, From My Desk, For me, official sources, desk relevance ===== */
+const OFF_URL = "https://raw.githubusercontent.com/vaibhavbhootra6722-droid/news-intelligence-app/data/official.json";
+const off20 = { data:null, state:"idle" };
+function offLoad(){
+  if(off20.state!=="idle") return; off20.state = "loading";
+  try{ const c = JSON.parse(localStorage.getItem("news:off") || "null"); if(c && c.items){ off20.data = c; } }catch(e){}
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 6000);
+  fetch(OFF_URL, { signal:ctl.signal, cache:"no-cache" }).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }).then(j => { if(j && j.items){ off20.data = j; off20.state = "ok"; try{ localStorage.setItem("news:off", JSON.stringify(j)); }catch(e){} } else off20.state = off20.data ? "ok" : "none"; })
+    .catch(() => { off20.state = off20.data ? "ok" : "none"; }).finally(() => { clearTimeout(tm); if(view.page==="home" && !document.querySelector(".drawer, .rmwrap")) renderContent(); });
+}
+/* ---- one-time silent preset: the app opens straight into the edition (Mumbai, IST, CA & BFSI). Legacy copy kept; idempotent. ---- */
+function personalDefaults(){
+  try{
+    if(store.get("news:p20")) return;
+    if(!store.get("news:legacy20")){ const o = {}; ["news:follow","news:watch","news:role","news:profile","news:mode","news:goal","news:onboard"].forEach(k => { const v = store.get(k); if(v!=null) o[k] = v; }); store.set("news:legacy20", o); }
+    if(!(store.get("news:follow") || []).length) store.set("news:follow", ["bfsi","business","markets","economy","tech","ai","india"]);
+    if(!(store.get("news:watch") || []).length) store.set("news:watch", ["RBI","SEBI","NFRA","ICAI","NBFC","Ind AS","CARO","master direction","digital lending","IRDAI","CBDT","GST","Anthropic","OpenAI","Codex","Mumbai"]);
+    if(!store.get("news:role")) store.set("news:role", "ca"); if(!store.get("news:profile")) store.set("news:profile", "ca");
+    if(!store.get("news:mode")) store.set("news:mode", "180"); if(!store.get("news:tz")) store.set("news:tz", "auto");
+    store.set("news:onboard", 1); store.set("news:p20", 1);
+  }catch(e){}
+}
+personalDefaults();
+
+/* ---- desk relevance: Indian BFSI statutory-audit screening ---- */
+const AUTH20_RE = /\b(rbi|reserve bank|sebi|nfra|icai|irdai|pfrda|ifsca|mca|cbdt|cbic|gst council|income[- ]tax|ministry of finance|finance ministry|nhb|nabard|fiu|ind as|companies act|nclt|caro|lfar)\b/i;
+const ENT_RE = /\b(nbfc|bank|banks|banking|housing finance|hfc|small finance|broker|broking|stock exchange|nse|bse|nsdl|cdsl|mutual fund|amc|insurer|insurance|depositor|payment|fintech|lender|lending|credit|npa|provision|audit|auditor|accounting|disclosure|master direction|circular|gst|tax)\b/i;
+const NOISE_RE = /\b(trai|iptv|set[- ]top|broadcast|cinema|film|box office|ipl|cricket|serial|murder|arrest|crime|explosion|blast|fir\b)\b/i;
+const FOREIGN_RE = /\b(u\.?s\.?|us|uk|britain|china|chinese|eu|european|australia|canada|pcaob|sec\b|fca|hong kong|singapore|dubai|saudi|nigeria|pakistan)\b/i;
+function bfsiRelevant(title, src){
+  const t = String(title || ""), official = /^o-|^rbi|^sebi|^pib/.test(String(src || ""));
+  if(NOISE_RE.test(t) && !AUTH20_RE.test(t)) return false;
+  if(AUTH20_RE.test(t)) return true;                           // named Indian authority or standard
+  if(FOREIGN_RE.test(t) && !/\bindia|indian|mumbai\b/i.test(t)) return false;   // foreign "audit"/"tax" stories are not Indian BFSI
+  return ENT_RE.test(t) && /\bindia|indian|mumbai|rbi|sebi|nbfc|nse|bse\b/i.test(t) && (!/\bgst\b/i.test(t) || /\b(council|return|rate|notification|circular|filing|invoice|itc|input tax)\b/i.test(t));
+}
+const deskList = () => ranked().filter(c => c.group==="bfsi" || bfsiRelevant(c.lead.title, c.lead.source));
+
+/* ---- Mumbai today (news-derived; no fabricated alerts) ---- */
+const MUM_RE = /\b(mumbai|lower parel|navi mumbai|thane|bmc|maharashtra|mmr|bkc|surat)\b/i, DISR_RE = /\b(rain|flood|waterlog|local train|western line|central line|harbour line|mega ?block|traffic|power cut|water cut|metro|airport|cancel|delay|suspend|advisory|alert|imd|landslide|heatwave|cyclone)\b/i;
+function mumbaiBlock(seen){
+  const head = secHead("Mumbai today", '<span class="muted small">from loaded news · not a live transport feed</span>');
+  if(view.loading && !view.clusters.length) return '<section class="sec">'+head+'<p class="muted">Loading local news…</p></section>';
+  const failed = (view.failed || []).some(f => /mumbai|local|state/i.test(String(f.id || f)));
+  const list = ranked().filter(c => MUM_RE.test(c.lead.title) && !seen.has(c.id)).slice(0, 3);
+  const disr = list.filter(c => DISR_RE.test(c.lead.title));
+  list.forEach(c => seen.add(c.id));
+  const status = disr.length ? '<p class="small"><b>Possible disruption reported.</b> Verify with the operator or BMC before travelling.</p>'
+    : failed ? '<p class="small muted"><b>Source unavailable.</b> The Mumbai feed did not load, so nothing can be said about disruptions.</p>'
+    : '<p class="small muted"><b>No disruptions reported</b> in the news loaded '+(view.at ? 'at '+esc(fmtTime(view.at))+' IST' : 'so far')+'. This reflects headlines only; check the railway/BMC channels for live status.</p>';
+  return '<section class="sec" id="mumbai">'+head+status+(list.length ? rows(list) : '')+'</section>';
+}
+/* ---- From My Desk (≤3) and For me ---- */
+function deskBlock(seen){
+  const list = deskList().filter(c => !seen.has(c.id)).sort((a,b) => (b.tier===1)-(a.tier===1) || b.rank.score-a.rank.score).slice(0, 3); list.forEach(c => seen.add(c.id));
+  offLoad(); const reg = off20.data ? off20.data.items.filter(i => i.kind==="reg").slice(0, 2) : [];
+  return '<section class="sec">'+secHead("From My Desk", '<button class="link" data-page="bfsi">Open →</button>')
+    + (list.length ? rows(list) : '<p class="muted">Nothing new for Indian BFSI audit in the loaded news.</p>')
+    + (reg.length ? '<p class="small muted" style="margin:8px 0 2px">Official source</p><ul class="offl">'+reg.map(offRow).join("")+'</ul>' : '')+'</section>';
+}
+const offRow = i => '<li><a href="'+esc(i.link)+'" target="_blank" rel="noopener noreferrer">'+esc(i.title)+'</a> <span class="muted small">'+esc(i.name)+(i.t ? ' · '+esc(new Date(i.t).toLocaleDateString("en-IN", { day:"numeric", month:"short", timeZone:"Asia/Kolkata" })) : '')+'</span></li>';
+const TOOL_RE = /\b(chatgpt|openai|claude|anthropic|codex|github|copilot|vercel|excel|power query|power bi|gemini|cursor|n8n|zapier|automation|ai agent)\b/i;
+function forMeBlock(seen){
+  offLoad(); const tools = off20.data ? off20.data.items.filter(i => i.kind==="tool").slice(0, 4) : [];
+  const list = ranked().filter(c => (c.group==="ai" || c.group==="tech") && TOOL_RE.test(c.lead.title) && !seen.has(c.id)).slice(0, 2); list.forEach(c => seen.add(c.id));
+  if(!tools.length && !list.length) return "";
+  return '<section class="sec">'+secHead("For me · AI & tools")
+    + (tools.length ? '<p class="small muted" style="margin:0 0 2px">Official release notes</p><ul class="offl">'+tools.map(offRow).join("")+'</ul>' : '<p class="small muted">Official release notes are not available right now.</p>')
+    + (list.length ? rows(list) : '')+'</section>';
+}
+function freshBar(){
+  const b = view.hero, mk = modeKey(), M = MODES[mk];
+  const first = !store.get("news:lastvisit"), last = store.get("news:lastvisit");
+  return '<div class="freshbar small muted" role="status"><b>'+esc(isToday() ? niceDate(view.date) : niceDate(view.date))+'</b> · '+(view.at ? 'updated '+esc(fmtTime(view.at))+' IST' : 'loading')+(view.failed && view.failed.length ? ' · <button class="linkbtn" data-v20="health">'+view.failed.length+' source'+(view.failed.length>1 ? 's' : '')+' delayed</button>' : ' · <button class="linkbtn" data-v20="health">sources OK</button>')+'</div>';
+}
+heroBlock = function(seen){
+  const m = modeKey(), b = buildBrief(ranked(), seen, m, { fmtTime, line:rowWords(true) }); view.hero = b;
+  const rd = readSet(), nread = b.events.filter(e => rd.has(e.id)).length, last = store.get("news:lastvisit");
+  const title = last && isToday() ? "Since you last checked" : "Top stories";
+  const mins = b.seconds >= 90 ? "about "+Math.max(1, Math.round(b.seconds/60))+" min" : "about "+b.seconds+" sec";
+  const tts = "speechSynthesis" in window;
+  return '<section class="sec hero" id="brief" aria-labelledby="hero-h"><div class="hero-top"><div><h2 id="hero-h">'+title+'</h2></div>'+modeTabs()+'</div>'
+    + '<p class="muted small" style="margin:0 0 6px">'+mins+' · '+b.events.length+' stories · '+nread+' of '+b.events.length+' read'+(tts ? ' · <span class="audio-slot">'+audioUI()+'</span>' : '')+'</p>'
+    + (b.events.length ? stripBlock(b.events) + leadCard(b.events[0]) + (b.events.length>1 ? rows(b.events.slice(1), { area:true, thumb:true }) : '') : '<p class="muted">No significant stories loaded for this day yet.</p>')
+    + (b.short && b.events.length ? '<p class="muted small">A quieter day: this briefing is shorter. Nothing was added to fill the time.</p>' : '')
+    + (b.events.length && nread===b.events.length ? '<p class="small" role="status"><b>You are caught up.</b> Every story offered here has been read.</p>' : '')+'</section>';
+};
+todayPage = function(){
+  const seen = makeSeen(); offLoad();
+  const hero = heroBlock(seen); view.homeSeen = seen.ids();
+  const mum = mumbaiBlock(seen), desk = deskBlock(seen), me = forMeBlock(seen);
+  view.homeSeen = seen.ids(); setTimeout(hydratePhotos, 0);
+  try{ if(isToday() && view.at) store.set("news:lastvisit", Date.now()); }catch(e){}
+  return freshBar() + hero + mum + desk + me + (typeof marketsBlock==="function" ? marketsBlock() : '')
+    + (view.loading || (view.failed && view.failed.length) ? '<section class="done" aria-label="Completion"><b>Some sources are delayed.</b><p class="muted">This is what has loaded so far.</p></section>' : '')
+    + '<section class="done"><button class="btn sec2" data-page="topics">Explore more news</button> <button class="btn sec2" data-page="deep">Deep dive</button></section>';
+};
+/* ---- remove Plans & inactive account controls from Settings/About ---- */
+const __os20 = openSettings;
+openSettings = function(){ __os20(); document.querySelectorAll(".drawer-b h3").forEach(h => { if(/^(Plans|Account)$/.test(h.textContent.trim())){ const n = h.nextElementSibling; if(n) n.remove(); h.remove(); } }); };
+const __cap20 = capHtml;
+capHtml = function(){ return __cap20().replace(/<h3>Plans<\/h3><p class="small">[\s\S]*?<\/p>/, ""); };
+/* ---- Live opens on Breaking coverage by default ---- */
+if(!store.get("news:livemode")) store.set("news:livemode", "breaking");
+/* ---- "/" opens search; source health screen ---- */
+document.addEventListener("keydown", ev => { if(ev.key==="/" && !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName) && !ev.metaKey && !ev.ctrlKey){ ev.preventDefault(); const b = $("search-btn") || document.getElementById("exp-search"); if(typeof openSearch==="function") openSearch(); else if(b) b.click(); } });
+document.addEventListener("click", ev => { const b = ev.target.closest("[data-v20]"); if(!b) return;
+  if(b.dataset.v20==="health"){ const f = view.failed || [];
+    $("layer").innerHTML = '<div class="dscrim" id="dscrim"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="Source health"><div class="dhead"><b>Source health</b><button class="iconbtn" id="dclose" aria-label="Close">'+icon("i-x")+'</button></div><div class="drawer-b">'
+      + '<p class="small">News feeds: '+(f.length ? f.length+' delayed or failed' : 'all loaded')+'. '+(view.at ? 'Last verified '+esc(fmtTime(view.at))+' IST.' : '')+'</p>'+(f.length ? '<ul class="covlist">'+f.map(x => '<li>'+esc(String(x.id || x))+' — not loaded</li>').join("")+'</ul>' : '')
+      + '<h3>Official sources</h3>'+(off20.data ? '<ul class="covlist">'+off20.data.sources.map(s => '<li><b>'+esc(s.name)+'</b> — '+(s.ok ? 'ok ('+s.n+')' : 'unavailable'+(s.err ? ': '+esc(s.err) : ''))+'</li>').join("")+'</ul><p class="small muted">Generated '+esc(new Date(off20.data.generated).toLocaleString("en-IN", { timeZone:"Asia/Kolkata" }))+' IST.</p>' : '<p class="small muted">Official feed file not available yet.</p>')+'</div></aside>';
+    const x = $("dclose"); if(x) x.onclick = () => { $("layer").innerHTML = ""; }; const s = $("dscrim"); if(s) s.onclick = () => { $("layer").innerHTML = ""; }; } });
+
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
 function renderSoon(){ if(!rTimer) rTimer = setTimeout(() => { rTimer = null; render(); }, 280); }
@@ -3886,5 +4000,4 @@ window.NI = { view, ranked, rankCtx, auditEvents, eventsFor, groupCounts, classi
 
 </script>
 <script>if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script></body>
-
 </html>

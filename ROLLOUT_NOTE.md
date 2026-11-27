@@ -42,3 +42,12 @@
 
 ## Rollback
 `git revert` the release commit(s); the service worker version (`ni-shell-8`) changes so clients refetch. The `data` branch is rebuilt every 20 min and can be ignored by clients (relay fallback).
+
+## Personal Edition (Nov 2026)
+- Opens straight into the edition (silent CA & BFSI / Mumbai preset; legacy settings copied to `news:legacy20`).
+- One finite briefing: 60s = 3–4 stories, 3 min = 5–7, 5 min = 8–10, 10 min = 12–16; duration shown is words ÷ 160 wpm.
+- Today: date/freshness bar → briefing → Mumbai today (news-derived, honest states) → From My Desk (≤3) → For me (official release notes) → Markets.
+- New `scripts/official.mjs` → `official.json` on the data branch (RBI, SEBI, PIB, GitHub, OpenAI, Vercel, Claude Code, Codex). Fail-safe; Source health screen shows which sources loaded.
+- My Desk relevance screen (`bfsiRelevant`) excludes foreign "audit", crime-headline "GST", TRAI/IPTV noise.
+- Plans and inactive account controls removed from Settings/About. Live opens on Breaking coverage. "/" opens search.
+- Not yet done: structured official-record lifecycle/comparison, calendar UIDs with verification labels, Saved collections + versioned backup import, story-label taxonomy.
