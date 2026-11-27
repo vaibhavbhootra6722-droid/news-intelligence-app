@@ -1184,7 +1184,7 @@ function searchEvents(events, q){
     for(const t of p.terms){
       if(e.lead.title.toLowerCase().includes(t)) score += 4; else if(titles.includes(t)) score += 3; else if(srcs.includes(t)) score += 2; else if(labels.includes(t)) score += 1; else { ok = false; break; }
     }
-    if(ok) res.push([e, score + (e.rank ? e.rank.score/100 : 0)]);
+    if(ok){ const mn = p.terms.length ? score/(4*p.terms.length) : 0; res.push([e, (e.rank ? e.rank.score : 0) + mn*0.01]); }   // significance first; every result already matches; match quality only breaks exact ties
   }
   return res.sort((a,b) => b[1]-a[1]).map(x => x[0]);
 }
