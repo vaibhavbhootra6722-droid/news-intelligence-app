@@ -5,7 +5,7 @@ const OK = /^(cc0|public domain|pd[- ]|cc[- ]by(?![- ]?(nc|nd))(?:[- ]sa)?)/i;
 const BAD = /logo|flag|map of|\bmap\b|diagram|coat of arms|emblem|stamp|signature|poster|screenshot|banner|icon|chart|graph|seal of|wordmark|\.svg|\.gif|\.pdf|\.tif|\.ogg|\.webm/i;
 const nrm = s => String(s || "").toLowerCase().replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/g, " ").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 const strip = s => String(s || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#039;/g, "'").trim();
-async function one(q) {
+async function one(q, tries = 3) {
   const u = "https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=12&gsrsearch=" + encodeURIComponent(q + " filetype:bitmap") + "&prop=imageinfo&iiprop=url|size|mime|extmetadata&iiurlwidth=900&iiextmetadatafilter=LicenseShortName|Artist|ImageDescription|ObjectName|Categories|DateTimeOriginal";
   try {
     const r = await fetch(u, { headers: { "User-Agent": "NewsIntelligenceApp/1.0 (github pages; contact via repo)" }, signal: AbortSignal.timeout(20000) });
@@ -16,14 +16,15 @@ async function one(q) {
       const md = ii.extmetadata || {}, lic = strip(md.LicenseShortName?.value);
       if (!OK.test(lic) || BAD.test(p.title || "")) continue;
       const hay = nrm((p.title || "") + " " + (md.ObjectName?.value || "") + " " + (md.ImageDescription?.value || "") + " " + (md.Categories?.value || ""));
-      if (!need.every(w => hay.includes(w))) continue;
+      if (need.filter(w => hay.includes(w)).length < Math.max(1, Math.ceil(need.length * 0.6))) continue;
       res.push({ url: ii.thumburl || ii.url, w: ii.thumbwidth || 900, h: ii.thumbheight || 600, page: ii.descriptionshorturl || ii.descriptionurl, lic, by: strip(md.Artist?.value).slice(0, 60) || "Wikimedia Commons contributor", alt: strip(md.ObjectName?.value || (p.title || "").replace(/^File:/, "").replace(/\.[a-z]+$/i, "")).slice(0, 140), subject: q, hay });
       if (res.length >= 3) break;
     }
+    if (!res.length && tries > 1 && !pages.length) { await new Promise(r => setTimeout(r, 1500)); return one(q, tries - 1); }
     return [q, res];
-  } catch (e) { return [q, []]; }
+  } catch (e) { if (tries > 1) { await new Promise(r => setTimeout(r, 2000)); return one(q, tries - 1); } return [q, []]; }
 }
-const out = {}; for (let i = 0; i < Q.length; i += 6) (await Promise.all(Q.slice(i, i + 6).map(one))).forEach(([q, r]) => out[q] = r);
+const out = {}; for (let i = 0; i < Q.length; i += 4) (await Promise.all(Q.slice(i, i + 4).map(one))).forEach(([q, r]) => out[q] = r);
 const n = Object.values(out).filter(a => a.length).length; console.log("photo queries with results", n, "/", Q.length);
 if (n < 5) process.exit(1);
 mkdirSync("out", { recursive: true }); writeFileSync("out/photos.json", JSON.stringify(out));
