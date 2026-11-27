@@ -13,6 +13,13 @@ jobs:
         with: { node-version: 22 }
       - run: node scripts/bundle.mjs
       - run: node scripts/photos.mjs || true
+      - name: events (every 6 hours or on manual run; otherwise carry the previous file over)
+        env: { TICKETMASTER_KEY: "${{ secrets.TICKETMASTER_KEY }}" }
+        run: |
+          H=$(date -u +%-H); M=$(date -u +%-M)
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || { [ $((H % 6)) -eq 0 ] && [ "$M" -lt 20 ]; }; then node scripts/events.mjs || true; fi
+          if [ ! -f out/events.json ]; then git fetch -q --depth=1 origin data && git show FETCH_HEAD:events.json > out/events.json || rm -f out/events.json; fi
+          ls -la out
       - name: publish to data branch
         run: |
           cd out && git init -q -b data && git config user.name bot && git config user.email bot@users.noreply.github.com

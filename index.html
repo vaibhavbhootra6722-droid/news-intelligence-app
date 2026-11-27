@@ -634,6 +634,38 @@ img,svg,video,canvas{max-width:100%}
 .tabbar,.bnav,nav.tabs{padding-bottom:env(safe-area-inset-bottom,0)}
 /* phone menu: the open drawer must sit ABOVE its dimming layer so its buttons receive taps */
 @media (max-width:767px){body.navopen .side{z-index:70;visibility:visible}.scrim{z-index:60}}
+/* landing v11: promise + live preview, gentle motion with a pause control */
+.cine .cfg h1{animation:titlein .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes titlein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.cine .cbg img{animation:kb 26s ease-in-out infinite alternate;transform-origin:60% 40%}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.09) translate(-1.5%,-1%)}}
+.cine.paused .cbg img,.cine.paused .cfg h1{animation-play-state:paused}
+.land-prev{display:block;width:100%;max-width:520px;text-align:left;margin:14px 0 4px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--panel) 78%,transparent);border:1px solid var(--line);backdrop-filter:blur(6px);color:var(--text)}
+.land-prev .lp-k{display:block;font:600 .7rem/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.land-prev .lp-t{display:block;font:600 1.05rem/1.3 var(--serif)}
+.land-prev .lp-m{display:block;margin-top:6px;font:.78rem/1.3 var(--sans);color:var(--soft)}
+.lp-load .lp-t{opacity:.7}
+.land-note{max-width:520px;color:var(--soft);margin:8px 0 0}
+.land-pause{margin-top:10px;font-size:.8rem}
+.cine .cfg h1{font-size:clamp(2rem,7vw,3.2rem);line-height:1.08}
+.build.slim,.warn.slim{padding:8px 12px;margin:8px 0}
+.statusline{margin:0;font:.82rem/1.4 var(--sans);color:var(--soft)}
+.statusline .btn{margin-left:8px;padding:4px 10px;font-size:.78rem}
+.slim details summary{font:.78rem var(--sans);color:var(--accent);cursor:pointer;margin-top:4px}
+@media (prefers-reduced-motion:reduce){.cine .cbg img,.cine .cfg h1{animation:none!important}.land-pause{display:none}}
+/* Live: events */
+.sgs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.sgb{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--soft);font:600 .85rem var(--sans)}
+.sgb.on,.sgb[aria-pressed=true],.sgb[aria-selected=true]{background:var(--accent);color:#0b0d10;border-color:var(--accent)}
+.evsel{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px}.evsel label{font:.78rem var(--sans);color:var(--soft);display:grid;gap:4px}
+.evsel select{padding:8px 10px;border-radius:10px;background:var(--panel);color:var(--text);border:1px solid var(--line);max-width:100%}
+.evlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:12px}
+.evc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.xeh{display:flex;justify-content:space-between;gap:8px;font:600 .7rem var(--sans);letter-spacing:.05em;text-transform:uppercase}
+.evbadge{padding:3px 8px;border-radius:999px;background:var(--panel2);color:var(--text)}.b-in_progress{background:#1f6f43;color:#fff}.b-canceled{background:#8a2b2b;color:#fff}.b-postponed,.b-rescheduled,.b-date_tbd{background:#8a6a1b;color:#fff}
+.evcat{color:var(--soft)}.xet{margin:2px 0 0;font:600 1.05rem/1.3 var(--serif);overflow-wrap:anywhere}.evwho{font:.85rem var(--sans);color:var(--soft)}
+.evwhen{font:600 .88rem var(--sans)}.evloc,.evsrc{font:.78rem var(--sans);color:var(--soft)}.evnote{font:.8rem var(--sans);padding:6px 8px;border-left:3px solid #c9a227;background:var(--panel2)}
+.evact{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.evact .btn{padding:6px 12px;font-size:.78rem}.evc.st-canceled .xet{text-decoration:line-through;opacity:.7}.evcov{margin-top:16px}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 <body>
@@ -929,18 +961,26 @@ const TIER_Q = { 1:1, 2:0.8, 3:0.6, 4:0.35 };
 /* ---------- clustering ---------- */
 const STOP = new Set("a an the of to in on for and or with at by from as is are was were be been after over amid into its it this that says said new live latest news update updates vs than more his her their will can may how why what who".split(" "));
 const NUMWORD = {one:"1",two:"2",three:"3",four:"4",five:"5",six:"6",seven:"7",eight:"8",nine:"9",ten:"10"};
+const SYN = { house:"home", houses:"home", residence:"home", residential:"home", blast:"explosion", blasts:"explosion", explosions:"explosion", explodes:"explosion", exploded:"explosion", injuries:"injured", hurt:"injured", injured:"injured", quake:"earthquake", blaze:"fire", fires:"fire", collapses:"collapse", collapsed:"collapse", cops:"police", killed:"dead", dies:"dead", died:"dead", deaths:"dead", kills:"dead", dead:"dead" };
+const GENERIC_ENT = new Set(["india","delhi","mumbai","china","russia","america","london","gaza","israel","ukraine","police","government","minister","supreme","court","reuters","breaking"]);
 function features(title){
   const norm = title.toLowerCase().replace(/[’']/g,"").replace(/[^a-z0-9ऀ-ॿ%.₹$ ]+/g," ");
   const words = norm.split(/\s+/).map(w => NUMWORD[w] || w).filter(Boolean);
   const tk = new Set(words.filter(w => w.length>2 && !STOP.has(w)));
   const nums = new Set(words.filter(w => /\d/.test(w)).map(w => w.replace(/[^\d.]/g,"")).filter(Boolean));
   const ents = new Set((title.match(/\b[A-Z][a-zA-Z&.]+(?:\s+[A-Z][a-zA-Z&.]+)*/g) || []).map(e => e.toLowerCase()).filter(e => e.length>2 && !STOP.has(e)));
-  return { tk, nums, ents, key: words.join(" ") };
+  const sk = new Set([...tk].map(w => SYN[w] || w));   // synonym-normalised tokens: used only to recognise the same incident, never for ids
+  return { tk, sk, nums, ents, key: words.join(" ") };
 }
 function overlap(a, b){ let n = 0; a.forEach(x => { if(b.has(x)) n++; }); return n; }
 function sameEvent(A, B){
   const inter = overlap(A.tk, B.tk), small = Math.min(A.tk.size, B.tk.size);
   if(!small) return false;
+  // same incident: a shared distinctive place/name plus at least three shared words once synonyms (house/home, blast/explosion, hurt/injured) are normalised
+  if(A.sk && B.sk && !(A.nums.size && B.nums.size && !overlap(A.nums, B.nums))){
+    const anchor = [...A.ents].some(e => !e.includes(" ") && e.length>=5 && !GENERIC_ENT.has(e) && B.ents.has(e));
+    if(anchor && overlap(A.sk, B.sk) >= 3) return true;
+  }
   const containment = inter/small, jaccard = inter/(A.tk.size+B.tk.size-inter);
   if(containment < 0.6 && jaccard < 0.45) return false;
   if(A.nums.size && B.nums.size && !overlap(A.nums, B.nums) && containment < 0.85) return false;
@@ -951,8 +991,28 @@ function fnv(str){ let h = 0x811c9dc5; for(let i=0;i<str.length;i++){ h ^= str.c
 // Stable event id: derived from the date + the earliest report's content words (not from array position),
 // and inherited from the previous clustering whenever the same report links are still present.
 function eventId(dateKey, lead){ return "e" + fnv(dateKey + "|" + [...features(lead.title).tk].sort().join(" ")); }
+
+/* ---------- v12: feed hygiene — items that are not news reports are quarantined (with a reason) before clustering ---------- */
+const CREDIT_WORDS = /\b(getty images?|ap photo|afp via getty|photo by|photograph by|image credit|photo credit|credit:|courtesy of|file photo|stock photo|\(?©\)?|shutterstock|reuters\/|\/getty|via getty)\b/i;
+const CREDIT_TAIL = /^[A-Z][^.!?]{2,44}\.\s+[A-Z][a-z]+(?:\s+[A-Z]\.)?\s+[A-Z][a-z]+(?:[…]|\.\.\.|\s*(?:\/|\|)\s*\S.*)?$/;
+const PLACEHOLDER = /^(untitled|no title|null|undefined|n\/a|\[removed\]|removed|lorem ipsum.*|test|title|headline|loading\.*|image|photo|video|\.+|-+)$/i;
+const NEWSY_VERB = /\b(is|are|was|were|has|have|had|says?|said|will|to|as|after|over|amid|vs|on|in|for|with|from|kills?|dies|wins?|loses?|hits?|rises?|falls?|cuts?|hikes?|bans?)\b/i;
+function quarantineReason(it, now){
+  const t = String(it.title||"").trim(), src = String(it.source||"").trim();
+  if(!t) return "empty headline";
+  if(PLACEHOLDER.test(t)) return "placeholder text";
+  if(t.split(/\s+/).length < 3) return "too short to be a headline";
+  if(CREDIT_WORDS.test(t) && t.split(/\s+/).length <= 14) return "photo credit or caption";
+  if(CREDIT_TAIL.test(t) && !NEWSY_VERB.test(t.split(/\.\s/)[1] || "")) return "photo credit or caption";
+  if(src.length > 70 || /https?:\/\/|www\./i.test(src)) return "malformed outlet name";
+  if(it.ts != null){ const n = now || Date.now(); if(it.ts > n + 36*3600e3) return "implausible date (future)"; if(it.ts < n - 800*86400e3) return "implausible date (too old)"; }
+  if(/^(photo|image|video|watch|gallery|in pictures|pics)\s*[:\-]/i.test(t)) return "media caption";
+  return null;
+}
+function hygiene(items, now){ const ok = [], bad = []; items.forEach(it => { const r = quarantineReason(it, now); if(r) bad.push({ title:it.title, source:it.source, reason:r }); else ok.push(it); }); return { ok, bad }; }
 function cluster(items, stateName, opts){
   opts = opts || {}; const dateKey = opts.date || "";
+  { const h = hygiene(items, opts.now); items = h.ok; cluster.quarantined = h.bad; }
   const sorted = items.slice().sort((x,y) => x.ts - y.ts || (x.link < y.link ? -1 : 1)), clusters = [];
   const index = new Map();                       // token -> cluster indexes (founder tokens): avoids comparing every pair
   for(const it of sorted){
@@ -995,7 +1055,7 @@ function cluster(items, stateName, opts){
 function idMap(events){ const m = new Map(); events.forEach(e => e.reports.forEach(r => m.set(r.link, e.id))); return m; }
 
 /* ---------- ranking ---------- */
-const WEIGHTS = { severity:25, impact:20, relevance:15, freshness:10, popularity:10, source:10, action:5, personal:5 };
+const WEIGHTS = { severity:20, impact:25, relevance:15, freshness:10, popularity:10, source:10, action:5, personal:5 };
 const IMPACT_BASE = { live:.6, bfsi:.55, markets:.5, politics:.5, india:.5, world:.5, business:.45, tech:.4, science:.4, life:.35, sports:.3, entertainment:.2 };
 const REL_BASE = { bfsi:.8, markets:.75, india:.8, business:.65, politics:.6, world:.45, tech:.5, science:.4, life:.4, live:.55, sports:.3, entertainment:.2 };
 const IMPACT_BOOST = W("nationwide|national|countrywide|global|worldwide|across (?:india|the world)|millions?|billions?|lakh crore|rbi|sebi|supreme court|cabinet|parliament|g20|imf|world bank|union budget|un security council");
@@ -1006,6 +1066,18 @@ const PROFILES = {
         terms:W("rbi|sebi|gst|audit|icai|nbfc|ind ?as|tax|companies act|mca|nfra|cbdt|ibc|insolvency|npa|fraud|compliance|circular|banks?|insurance|irdai") },
   general: { label:"General reader", boost:{}, terms:null },
 };
+
+// Scope of public consequence, from words and sources only: "global", "national", "regional" or "local".
+const LOCAL_INCIDENT = /\b(explosion|blast|fire|crash(?:es|ed)?|collision|accident|shooting|stabbing|gas leak|house|home|residence|apartment|neighbou?rhood|highway|road)\b/i;
+function scopeOf(c, sev, best){
+  const text = c.reports.map(r => r.title).join(" "), cas = (CASUALTY.exec(text)||[])[0], n = cas ? parseInt(cas.replace(/,/g,""), 10) : 0;
+  if(n >= 25) return c.indep>=3 || n>=100 ? "global" : "national";
+  if(best===1 || IMPACT_BOOST.test(text)) return c.group==="world" || /global|worldwide|un security council|imf|world bank/i.test(text) ? "global" : "national";
+  if(["india","politics","markets","bfsi","business"].includes(c.group)) return "national";
+  if((c.group==="live" || LOCAL_INCIDENT.test(c.lead.title)) && n < 3 && !/\b(attack|war|missile|ceasefire|earthquake|tsunami|cyclone|hurricane|coup|invasion|nuclear|terror\w*)\b/i.test(text)) return "local";
+  if(c.group==="world" && c.indep>=3) return "global";
+  return "regional";
+}
 function scoreEvent(c, ctx){
   ctx = ctx || {}; const now = ctx.now || Date.now(), title = c.lead.title, g = c.group;
   const sev = c.sev != null ? c.sev : severityOf(title, g);
@@ -1027,8 +1099,11 @@ function scoreEvent(c, ctx){
   let score = 0; for(const k in WEIGHTS) score += WEIGHTS[k]*parts[k];
   // Controlled severity override: a critical event is lifted to a floor, higher when independently confirmed, lower when single-source. Never to the very top for a lone unconfirmed report.
   const confirmed = c.indep>=2 || best===1; let override = false;
-  if(sev>=1){ const floor = confirmed ? 85 : 72; if(score<floor){ score = floor; override = true; } }
-  return { score:Math.round(score*10)/10, parts, override, confirmed };
+  const scope = scopeOf(c, sev, best);
+  // Editorial policy: a severity word is one signal. The floor applies only to consequential, evidenced events; a local incident is capped.
+  if(sev>=1 && scope!=="local"){ const floor = confirmed ? (scope==="global"||scope==="national" ? 85 : 70) : 55; if(score<floor){ score = floor; override = true; } }
+  if(scope==="local") score = Math.min(score, 52);
+  return { score:Math.round(score*10)/10, parts, override, confirmed, scope };
 }
 function rankEvents(events, ctx){
   events.forEach(e => { e.rank = scoreEvent(e, ctx); });
@@ -1145,17 +1220,21 @@ function buildBrief(ranked, seen, mode, opts){
   opts = opts || {}; const M = MODES[mode] || MODES["60"], fmt = opts.fmtTime || (() => "9:00 am"), floor = opts.floor==null ? 30 : opts.floor;
   const per = {}, picks = []; let words = 0;
   const line = opts.line || (e => wordCount(e.lead.title) + wordCount(heroMeta(e, fmt)));
-  for(const e of ranked){
+  const opening = new Set(); // first pass: at most one story per category until five are chosen (subject diversity), then fill under the caps
+  for(const pass of [1, 2]) for(const e of ranked){
     if(picks.length>=M.max) break;
+    if(pass===1 && (opening.size>=5 || opening.has(e.group))) continue;
+    if(picks.includes(e)) continue;
     if(seen.has(e.id) || wordCount(e.lead.title)>26) continue;
     if(e.rank.score < floor && !(e.sev>=1)) continue;
     if((per[e.group]||0) >= M.cap) continue;
     const w = line(e);
     if(words + w > M.hi && picks.length>=M.min) continue;
     if(words + w > M.hi + 30) continue;
-    picks.push(e); per[e.group] = (per[e.group]||0)+1; words += w;
+    picks.push(e); if(pass===1) opening.add(e.group); per[e.group] = (per[e.group]||0)+1; words += w;
   }
-  picks.sort((a,b) => b.rank.score - a.rank.score || (a.id<b.id ? -1 : 1));
+  const byScore = (a,b) => b.rank.score - a.rank.score || (a.id<b.id ? -1 : 1), nOpen = opening.size;
+  picks.splice(0, picks.length, ...picks.slice(0, nOpen).sort(byScore), ...picks.slice(nOpen).sort(byScore));
   picks.forEach(e => seen.add(e.id));
   return { mode, events:picks, words, seconds:Math.max(5, Math.round(words/READ_WPM*60)), short: words < M.lo };
 }
@@ -1947,7 +2026,7 @@ function todayPage(){
   view.homeSeen = seen.ids();
   setTimeout(hydratePhotos, 0);
   return h + (first ? leadH + hero + a : a + leadH + hero) + ess + away + desk + more + live
-    + '<section class="done" aria-label="Completion"><b>You’re all caught up.</b><p class="muted">That is everything that matters from the stories loaded. No endless scroll.</p>'
+    + (view.loading || (view.failed && view.failed.length) ? '<section class="done" aria-label="Completion"><b>Some sources are delayed.</b><p class="muted">This is what has loaded so far'+(view.at ? ' (last verified '+esc(fmtTime(view.at))+' IST)' : '')+'. We do not call it complete until every section has been checked.</p>' : '<section class="done" aria-label="Completion"><b>You’re all caught up.</b><p class="muted">That is everything that matters from the stories loaded. No endless scroll.</p>')
     + '<button class="btn sec2" data-page="topics">Explore more news</button></section>';
 }
 
@@ -2157,6 +2236,9 @@ document.addEventListener("click", e => {
     case "dlyear": view.dlYear = arg; renderContent(); break;
     case "land-read": store.set("news:onboard", 1); renderContent(); { const t = document.getElementById("brief"); if(t) t.scrollIntoView({ behavior:"smooth", block:"start" }); } break;
     case "land-desk": store.set("news:onboard", 1); view.page = "bfsi"; render(); break;
+    case "land-google": store.set("news:onboard", 1); renderContent(); openSettings(); break;
+    case "land-pause": { const L = document.querySelector(".land"); if(L){ const p = L.classList.toggle("paused"); store.set("news:landpause", p ? 1 : 0); b.textContent = p ? "Play motion" : "Pause motion"; b.setAttribute("aria-pressed", String(p)); } break; }
+    case "welcome": closeDetail(); store.del("news:onboard"); view.page = "home"; render(); window.scrollTo(0, 0); break;
     case "tz": store.set("news:tz", arg); openSettings(); render(); break;
     case "reset-stats": store.set("news:stats", null); openSettings(); break;
     case "theme": toggleTheme(); openSettings(); break;
@@ -2636,6 +2718,158 @@ async function hydrateTopics(){
       + (el.dataset.cr==="0" ? "" : '<a class="cr" href="'+esc(im.page || "https://commons.wikimedia.org")+'" target="_blank" rel="noopener noreferrer" title="Photo: '+esc(im.by)+' · '+esc(im.lic)+'">Photo: '+esc(im.by.slice(0,28))+' · '+esc(im.lic)+'</a>'));
     el.classList.add("has"); });
 }
+
+/* ================= v11: guest-first landing with a real preview, compact intake status, honest completion ================= */
+function landingBlock(){
+  const top = (view.clusters && view.clusters.length) ? ranked()[0] : null, paused = !!store.get("news:landpause");
+  const prev = top
+    ? '<button class="land-prev" '+openAttr(top)+' aria-label="Open the top story"><span class="lp-k">Top story · '+esc(catShort(top.group))+'</span><span class="lp-t">'+esc(top.lead.title)+'</span><span class="lp-m">'+esc(top.lead.source)+' · '+esc(fmtTime(top.first))+' IST · '+(top.outlets || 1)+' outlet'+((top.outlets || 1) === 1 ? "" : "s")+' reporting</span></button>'
+    : '<div class="land-prev lp-load" role="status"><span class="lp-k">Today’s edition</span><span class="lp-t">Checking today’s sources…</span><span class="lp-m">The last successful edition opens as soon as it is available.</span></div>';
+  const g = acct && acct.cid ? '<button class="btn sec2" data-v3="land-google">Continue with Google</button>' : "";
+  return '<section class="land cine'+(paused ? " paused" : "")+'" aria-labelledby="land-h"><div class="cbg" data-tp="world" data-alt="" aria-hidden="true"><span class="tgrad"></span></div><div class="cfg">'
+    + '<div class="ckick">'+esc(niceDate(view.date || todayIST()))+' · Daily News Intelligence</div><h1 id="land-h">Understand what changed today.</h1>'
+    + '<p>A finite daily briefing with sources you can open — pictures, timelines and the stories that matter to your work.</p>' + prev
+    + '<div class="landbtns"><button class="btn" data-v3="land-read">Explore today’s edition</button><button class="btn sec2" data-v3="land-desk">Professional intelligence</button>'+g+'</div>'
+    + (g ? '<p class="small land-note">Signing in syncs your saves and preferences across devices. Guest mode works fully without it.</p>' : '')
+    + '<button class="linkbtn land-pause" data-v3="land-pause" aria-pressed="'+paused+'">'+(paused ? "Play motion" : "Pause motion")+'</button></div></section>';
+}
+/* intake status: one compact line; the section-by-section checklist lives behind a disclosure */
+function buildPanel(){
+  const ids = Object.keys(view.stat); if(!view.loading || !ids.length) return "";
+  const done = ids.filter(i => view.stat[i].s !== "wait").length;
+  const list = arr => arr.map(i => '<li data-s="'+view.stat[i].s+'">'+esc(view.stat[i].label)+'</li>').join("");
+  return '<section class="card build slim" aria-label="Loading progress"><p class="statusline" role="status">Checking sources · '+done+' of '+ids.length+' sections · '+view.items.length+' reports'+(view.clusters.length ? ' · '+view.clusters.length+' stories so far' : '')+'</p>'
+    + '<details><summary>What is being checked</summary><ul>'+list(ids)+'</ul></details></section>';
+}
+function warnPanel(){
+  if(view.loading || !view.failed.length || !view.date || !view.clusters.length) return "";
+  const total = feedsFor().length, rate = view.codes.length && view.codes.every(c => c === "rate");
+  return '<section class="card warn slim" role="status"><p class="statusline"><b>Some sources are delayed</b> · '+(total-view.failed.length)+' of '+total+' sections loaded'+(view.at ? ' · last verified '+esc(fmtTime(view.at))+' IST' : '')+(rate ? ' · the news service is limiting requests' : '')
+    + ' <button class="btn sec2" id="retry">Reload</button></p><details><summary>Which sections</summary><p class="muted small">'+esc(view.failed.map(id => (feedsFor().find(f => f.id === id) || {}).label).filter(Boolean).join(", "))+'</p></details></section>';
+}
+/* About the data: edition status, intake, quarantined items, deployment capabilities, and a way back to the welcome screen */
+const __oa11 = openAbout;
+openAbout = function(){
+  __oa11(); const b = document.querySelector(".drawer-b"); if(!b) return;
+  const ids = Object.keys(view.stat || {}), q = cluster.quarantined || [];
+  const byReason = {}; q.forEach(x => byReason[x.reason] = (byReason[x.reason] || 0) + 1);
+  const host = /\.github\.io$/.test(location.hostname) ? "GitHub Pages (guest mode, prebuilt news bundle)" : /netlify\.app$/.test(location.hostname) ? "Netlify (server features when deployed)" : location.protocol === "file:" ? "Local file" : location.hostname;
+  const sec = document.createElement("div");
+  sec.innerHTML = '<h3>Edition status</h3><p class="small">'+(view.loading ? "Collecting…" : view.failed && view.failed.length ? "Some sources are delayed." : "All sections checked.")+(view.at ? ' Last verified '+esc(fmtTime(view.at))+' IST.' : '')+' '+view.items.length+' reports → '+view.clusters.length+' stories.</p>'
+    + (ids.length ? '<details><summary>Section-by-section intake</summary><ul class="covlist">'+ids.map(i => '<li data-s="'+view.stat[i].s+'">'+esc(view.stat[i].label)+' — '+esc(({ ok:"loaded", wait:"waiting", fail:"unavailable", empty:"no items" })[view.stat[i].s] || view.stat[i].s)+'</li>').join("")+'</ul></details>' : "")
+    + '<h3>Quality checks</h3><p class="small">'+(q.length ? q.length+' item'+(q.length === 1 ? "" : "s")+' set aside before ranking: '+Object.entries(byReason).map(([r,n]) => n+' × '+esc(r)).join(", ")+'. Original wording is kept on every report that passes.' : 'No malformed items were found in this edition.')+'</p>'
+    + '<h3>Where you are</h3><p class="small">'+esc(host)+'. Account sync, AI answers and alerts need a server deployment; on this deployment you are a guest and everything is stored on this device.</p>'
+    + '<p><button class="btn sec2" data-v3="welcome">Show the welcome screen again</button></p>';
+  b.appendChild(sec);
+};
+
+/* ================= v12: Live = Events | Breaking coverage. Events come from a scheduled pipeline (events.json); nothing is invented ================= */
+const EV_URL = "https://raw.githubusercontent.com/vaibhavbhootra6722-droid/news-intelligence-app/data/events.json";
+const evx = { data:null, state:"idle", err:"", when:"now", city:"", cat:"", tz:store.get("news:evtz") || "venue" };   // state: idle | loading | ok | unavailable | degraded
+const EV_CATS = { concert:"Concerts & tours", festival:"Festivals & observances", sports:"Sports", performance:"Performances", community:"Community & creators", exhibition:"Exhibitions", convention:"Conventions", other:"Other" };
+const EV_STATUS = { scheduled:"Scheduled", in_progress:"In progress", completed:"Completed", postponed:"Postponed", canceled:"Canceled", rescheduled:"Rescheduled", date_tbd:"Date to be announced" };
+function evLoad(){
+  if(evx.state==="loading") return; evx.state = "loading";
+  try{ const c = JSON.parse(localStorage.getItem("news:events") || "null"); if(c && c.data){ evx.data = c.data; evx.state = "ok"; } }catch(e){}
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 8000);
+  fetch(EV_URL, { signal:ctl.signal, cache:"no-cache" }).then(r => { if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }).then(j => {
+    if(!j || !Array.isArray(j.events)) throw new Error("bad data"); evx.data = j; evx.state = "ok"; evx.err = "";
+    try{ localStorage.setItem("news:events", JSON.stringify({ t:Date.now(), data:j })); }catch(e){}
+  }).catch(e => { evx.err = String(e.message || e); evx.state = evx.data ? "degraded" : "unavailable"; }).finally(() => { clearTimeout(tm); if(view.page==="live" && (view.liveMode || "events")==="events") renderContent(); });
+}
+const evStart = e => e.start ? Date.parse(e.start) : null;
+function evDayWindow(e){   // date-only listings occupy the whole local day; treated in UTC when no zone is given
+  if(!e.localDate) return null; const a = Date.parse(e.localDate+"T00:00:00Z"); return [a, a + 864e5];
+}
+function evStatus(e, now){
+  if(e.status && e.status!=="scheduled") return e.status;
+  const s = evStart(e), win = evDayWindow(e);
+  if(s!=null){ const end = e.end ? Date.parse(e.end) : s + 3*3600e3; if(now>=s && now<=end) return "in_progress"; if(now>end) return "completed"; }
+  else if(win){ if(now>=win[0] && now<win[1]) return "in_progress"; if(now>=win[1]) return "completed"; }
+  return "scheduled";
+}
+function evFmt(e, withTz){
+  const opts = { weekday:"short", day:"numeric", month:"short" };
+  if(e.precision==="time" && e.start){
+    const tz = evx.tz==="mine" || !e.tz ? undefined : e.tz; Object.assign(opts, { hour:"numeric", minute:"2-digit", timeZoneName:"short" });
+    try{ return new Intl.DateTimeFormat("en-GB", Object.assign({ timeZone:tz }, opts)).format(new Date(e.start)) + (evx.tz==="mine" || !e.tz ? " (your time)" : ""); }catch(x){}
+  }
+  if(e.localDate){ return new Intl.DateTimeFormat("en-GB", { weekday:"short", day:"numeric", month:"short", year:"numeric", timeZone:"UTC" }).format(new Date(e.localDate+"T00:00:00Z")) + (e.status==="date_tbd" ? "" : " · date only"); }
+  return "Date to be announced";
+}
+function evWhenFilter(e, now){
+  const st = evStatus(e, now); if(evx.when==="saved") return !!(store.get("news:evsaved")||{})[e.id];
+  if(evx.when==="now") return st==="in_progress";
+  if(st==="completed" && !(store.get("news:evsaved")||{})[e.id]) return false;
+  if(evx.when==="weekend"){ const d = new Date(now), dow = d.getDay(), toFri = (5 - dow + 7) % 7, a = new Date(d.getFullYear(), d.getMonth(), d.getDate() + (dow===0 || dow===6 ? (dow===0 ? -2 : -1) : toFri), 17, 0).getTime(), b = a + 2*864e5 + 7*3600e3;
+    const s = evStart(e) != null ? evStart(e) : (evDayWindow(e) || [null])[0]; return s!=null && s >= a - 864e5*0 && s <= b; }
+  return true;
+}
+function evCard(e, now){
+  const st = evStatus(e, now), saved = !!(store.get("news:evsaved")||{})[e.id], fol = (store.get("news:evfollow")||[]).includes(e.performer || e.name);
+  const loc = [e.venue, e.city, e.country].filter(Boolean).join(", "), who = e.performer && e.performer!==e.name ? e.performer : null;
+  return '<li class="evc st-'+esc(st)+'" data-evid="'+esc(e.id)+'"><div class="xeh"><span class="evbadge b-'+esc(st)+'">'+esc(EV_STATUS[st] || st)+'</span><span class="evcat">'+esc(EV_CATS[e.category] || e.category)+'</span></div>'
+    + '<h3 class="xet">'+esc(e.name)+'</h3>'+(who ? '<div class="evwho">'+esc(who)+(e.series ? ' · '+esc(e.series) : '')+'</div>' : '')
+    + '<div class="evwhen">'+esc(evFmt(e))+(e.doors ? ' · doors '+esc(e.doors.slice(0,5)) : '')+'</div>'
+    + (loc ? '<div class="evloc">'+esc(loc)+(e.lat!=null ? ' · <a href="https://www.openstreetmap.org/?mlat='+e.lat+'&mlon='+e.lon+'#map=15/'+e.lat+'/'+e.lon+'" target="_blank" rel="noopener noreferrer">Map</a>' : '')+'</div>' : '')
+    + '<div class="evsrc">'+esc(e.provenance || "")+' · checked '+esc(fmtTime(Date.parse(e.checked || (evx.data && evx.data.generated)))||"")+' IST'+(e.verified ? "" : ' · unverified')+'</div>'
+    + (st==="postponed" || st==="canceled" || st==="rescheduled" ? '<div class="evnote" role="note">'+(st==="canceled" ? "This occurrence is canceled." : st==="postponed" ? "Postponed — a new date has not been confirmed." : "Rescheduled — check the official listing for the new date.")+'</div>' : '')
+    + '<div class="evact"><button class="btn sec2" data-v12="evsave:'+esc(e.id)+'" aria-pressed="'+saved+'">'+(saved ? "Saved" : "Save")+'</button>'
+    + (e.performer || e.name ? '<button class="btn sec2" data-v12="evfollow:'+esc(e.performer || e.name)+'" aria-pressed="'+fol+'">'+(fol ? "Following" : "Follow "+esc(e.performer ? "artist" : "event"))+'</button>' : '')
+    + (evStart(e)!=null || e.localDate ? '<button class="btn sec2" data-v12="evics:'+esc(e.id)+'">Add to calendar</button>' : '')
+    + (e.url ? '<a class="btn sec2" href="'+esc(e.url)+'" target="_blank" rel="noopener noreferrer">Official listing</a>' : '')+'</div></li>';
+}
+function eventsView(){
+  if(evx.state==="idle") evLoad();
+  const now = Date.now(), d = evx.data, evs = d ? d.events : [];
+  const cities = [...new Set(evs.map(e => e.city).filter(Boolean))].sort(), cats = [...new Set(evs.map(e => e.category))];
+  const seg = (k, label) => '<button class="sgb'+(evx.when===k ? " on" : "")+'" data-v12="evwhen:'+k+'" aria-pressed="'+(evx.when===k)+'">'+label+'</button>';
+  let list = evs.filter(e => evWhenFilter(e, now) && (!evx.city || e.city===evx.city) && (!evx.cat || e.category===evx.cat));
+  list.sort((a,b) => ((evStart(a) != null ? evStart(a) : (evDayWindow(a)||[9e15])[0]) - (evStart(b) != null ? evStart(b) : (evDayWindow(b)||[9e15])[0])));
+  const total = list.length; list = list.slice(0, 60);
+  const cov = d && d.coverage ? d.coverage : null;
+  const covTxt = cov ? 'Sources: '+(cov.sources.length ? cov.sources.map(esc).join(", ") : "none connected")+(cov.countries && cov.countries.length ? '. Ticketed listings cover: '+cov.countries.map(esc).join(", ") : '')+'. '+esc(cov.note || "") : "";
+  let body;
+  if(evx.state==="loading" && !d) body = '<p class="muted" role="status">Loading scheduled events…</p>';
+  else if(evx.state==="unavailable" && !d) body = '<div class="empty"><b>Events data is unavailable right now.</b>The scheduled event feed could not be reached ('+esc(evx.err)+'). Breaking coverage still works.<div style="margin-top:12px"><button class="btn sec2" data-v12="evreload">Try again</button></div></div>';
+  else if(!list.length) body = '<div class="empty"><b>No verified events match.</b>'+(evx.when==="saved" ? "You have not saved any events yet." : "There are no verified listings for this filter in the data we hold. This is a statement about our coverage, not about the city.")+'</div>';
+  else body = '<ul class="evlist">'+list.map(e => evCard(e, now)).join("")+'</ul>'+(total>60 ? '<p class="muted small">Showing 60 of '+total+'. Use the city or category filter to narrow the list.</p>' : '');
+  return '<div class="evfilters"><div class="sgs" role="group" aria-label="When">'+seg("now","Happening now")+seg("weekend","This weekend")+seg("upcoming","Upcoming")+seg("saved","Saved")+'</div>'
+    + '<div class="evsel"><label>City <select data-v12sel="city"><option value="">All cities</option>'+cities.map(c => '<option'+(evx.city===c ? " selected" : "")+'>'+esc(c)+'</option>').join("")+'</select></label>'
+    + '<label>Category <select data-v12sel="cat"><option value="">All</option>'+cats.map(c => '<option value="'+esc(c)+'"'+(evx.cat===c ? " selected" : "")+'>'+esc(EV_CATS[c] || c)+'</option>').join("")+'</select></label>'
+    + '<label>Times <select data-v12sel="tz"><option value="venue"'+(evx.tz==="venue" ? " selected" : "")+'>Venue local time</option><option value="mine"'+(evx.tz==="mine" ? " selected" : "")+'>My time zone</option></select></label></div></div>'
+    + (evx.state==="degraded" ? '<p class="statusline" role="status"><b>Showing the last saved events.</b> The latest check failed ('+esc(evx.err)+').</p>' : '')
+    + body + '<p class="muted small evcov">'+(d ? 'Events data last checked '+esc(fmtTime(Date.parse(d.generated)))+' IST (updated about every 6 hours). ' : '')+covTxt+' Dates, times and status come from the listed source; we never add prices, attendance or ticket availability.</p>';
+}
+const __lp12 = livePage;
+livePage = function(){
+  const mode = view.liveMode || store.get("news:livemode") || "events";
+  const head = '<div class="page-h"><h1>Live</h1></div><div class="sgs livemodes" role="tablist" aria-label="Live mode"><button class="sgb'+(mode==="events" ? " on" : "")+'" role="tab" aria-selected="'+(mode==="events")+'" data-v12="livemode:events">Events</button><button class="sgb'+(mode==="breaking" ? " on" : "")+'" role="tab" aria-selected="'+(mode==="breaking")+'" data-v12="livemode:breaking">Breaking coverage</button></div>';
+  return mode==="breaking" ? head + __lp12() : head + eventsView();
+};
+function evIcs(e){
+  const z = n => String(n).padStart(2, "0"), u = ms => { const d = new Date(ms); return d.getUTCFullYear()+z(d.getUTCMonth()+1)+z(d.getUTCDate())+"T"+z(d.getUTCHours())+z(d.getUTCMinutes())+"00Z"; };
+  const L = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Daily News Intelligence//Events//EN","BEGIN:VEVENT","UID:"+e.id+"@news-intelligence","DTSTAMP:"+u(Date.now())];
+  if(evStart(e)!=null && e.precision==="time"){ L.push("DTSTART:"+u(evStart(e)), "DTEND:"+u(e.end ? Date.parse(e.end) : evStart(e) + 3*3600e3)); }
+  else if(e.localDate){ const a = e.localDate.replace(/-/g, ""), n = new Date(Date.parse(e.localDate+"T00:00:00Z") + 864e5), b = n.getUTCFullYear()+z(n.getUTCMonth()+1)+z(n.getUTCDate()); L.push("DTSTART;VALUE=DATE:"+a, "DTEND;VALUE=DATE:"+b); }
+  const esc2 = s => String(s||"").replace(/[\;,]/g, m => "\\"+m).replace(/\n/g, "\\n");
+  L.push("SUMMARY:"+esc2(e.name), "LOCATION:"+esc2([e.venue, e.city, e.country].filter(Boolean).join(", ")), "DESCRIPTION:"+esc2((e.localDate && e.localTime ? "Venue local time "+e.localDate+" "+e.localTime.slice(0,5)+(e.tz ? " ("+e.tz+")" : "")+". " : "")+"Source: "+(e.provenance||"")+". Check the official listing before travelling."));
+  if(e.url) L.push("URL:"+e.url); L.push("STATUS:"+(e.status==="canceled" ? "CANCELLED" : "CONFIRMED"), "END:VEVENT", "END:VCALENDAR"); return L.join("\r\n");
+}
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-v12]"); if(!b) return; const [k, ...r] = b.dataset.v12.split(":"), arg = r.join(":");
+  if(k==="livemode"){ view.liveMode = arg; store.set("news:livemode", arg); renderContent(); syncHash(); }
+  else if(k==="evwhen"){ evx.when = arg; renderContent(); }
+  else if(k==="evreload"){ evx.state = "idle"; renderContent(); }
+  else if(k==="evsave"){ const m = store.get("news:evsaved") || {}, e = evx.data && evx.data.events.find(x => x.id===arg); if(m[arg]) delete m[arg]; else if(e) m[arg] = Object.assign({}, e, { savedAt:Date.now() }); store.set("news:evsaved", m); renderContent(); }
+  else if(k==="evfollow"){ const a = store.get("news:evfollow") || [], i = a.indexOf(arg); if(i>=0) a.splice(i,1); else a.push(arg); store.set("news:evfollow", a); renderContent(); }
+  else if(k==="evics"){ const e = evx.data && evx.data.events.find(x => x.id===arg) || (store.get("news:evsaved")||{})[arg]; if(!e) return; const url = URL.createObjectURL(new Blob([evIcs(e)], { type:"text/calendar" })), a = document.createElement("a"); a.href = url; a.download = (e.name||"event").replace(/[^\w]+/g,"-").slice(0,40)+".ics"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }
+});
+document.addEventListener("change", ev => { const s = ev.target.closest("[data-v12sel]"); if(!s) return; const k = s.dataset.v12sel; if(k==="tz"){ evx.tz = s.value; store.set("news:evtz", s.value); } else evx[k] = s.value; renderContent(); });
+// deep links: #p=live&m=breaking (old #p=live links keep working and now open Events first)
+{ const m = /[#&]m=(events|breaking)/.exec(location.hash); if(m){ view.liveMode = m[1]; } }
+const __sh12 = syncHash; syncHash = function(){ __sh12(); if(view.page==="live" && (view.liveMode || store.get("news:livemode"))==="breaking" && !/m=breaking/.test(location.hash)) history.replaceState(null, "", location.hash + "&m=breaking"); };
+window.addEventListener("hashchange", () => { const m = /[#&]m=(events|breaking)/.exec(location.hash); if(m && view.liveMode !== m[1]){ view.liveMode = m[1]; if(view.page==="live") renderContent(); } });
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;
