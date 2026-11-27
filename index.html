@@ -689,6 +689,13 @@ img,svg,video,canvas{max-width:100%}
 .mkw{margin:0 0 18px;min-width:0}.mkc{width:100%;height:auto;max-height:260px;display:block}.mkt{font-size:11px;fill:var(--muted)}.mkt2{width:100%;border-collapse:collapse;font-size:.85rem}.mkt2 th,.mkt2 td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
 .dlf{display:grid;gap:10px;padding:14px;border:1px solid var(--line2);border-radius:12px;margin-bottom:14px}.dlf input{padding:10px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);width:100%;box-sizing:border-box}
 .cap.exc{display:block}[data-cap][data-s=enabled]{color:inherit}
+/* v17 tokens: restrained premium palette (semantic) */
+:root,[data-theme=dark]{--bg:#090C12;--panel:#101620;--panel2:#161E2B;--line:#242D3B;--line2:#2F3A4B;--ink:#F4F6FA;--soft:#B1BCCB;--faint:#8995A8;--accent:#8B9CFF;--accent-ink:#090C12;--accent-soft:rgba(139,156,255,.14);--pos:#45C997;--neg:#F07878;--notice:#E9B85F}
+[data-theme=light]{--bg:#FAF8F4;--panel:#FFFFFF;--panel2:#F1EEE8;--line:#E4E0D7;--line2:#CFCAC0;--ink:#1B2230;--soft:#4A5363;--faint:#5F6776;--accent:#3A4FC7;--accent-ink:#FFFFFF;--accent-soft:rgba(58,79,199,.10);--pos:#1B7F5C;--neg:#B63A3A;--notice:#8A5A00}
+.drawer-b{font-size:var(--rfs,1rem)}.drawer-b p,.drawer-b li{max-width:72ch}
+.toast17{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:95;background:var(--panel2);color:var(--ink);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;max-width:min(92vw,520px);font-size:.88rem;box-shadow:0 6px 24px rgba(0,0,0,.35)}.toast17[hidden]{display:none}
+.obrow input[type=time]{padding:6px 10px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0B0D10"></head>
 
@@ -1236,7 +1243,8 @@ function auditEvents(events){
 const MODES = {
   "60":  { label:"60 seconds", lo:120, hi:160, min:4, max:9,  cap:2 },
   "180": { label:"3 minutes",  lo:400, hi:550, min:10, max:34, cap:4 },
-  "300": { label:"5 minutes",  lo:700, hi:900, min:16, max:60, cap:6 }
+  "300": { label:"5 minutes",  lo:700, hi:900, min:16, max:60, cap:6 },
+  "600": { label:"10 minutes", lo:1400, hi:1800, min:24, max:90, cap:8 }
 };
 // Finite brief for one mode: unique events, best-ranked first, per-topic cap, stops at the word budget, never pads.
 // Events below a quality floor are skipped (unless severe), so a quiet day gives a SHORTER brief, not filler.
@@ -1976,7 +1984,7 @@ function greeting(){
 function modeTabs(){
   const m = modeKey();
   return '<div class="seg" role="group" aria-label="Reading time">'+Object.keys(MODES).map(k =>
-    '<button aria-pressed="'+(k===m)+'" data-v3="mode:'+k+'">'+(k==="60" ? "60 sec" : k==="180" ? "3 min" : "5 min")+'</button>').join("")+'</div>';
+    '<button aria-pressed="'+(k===m)+'" data-v3="mode:'+k+'">'+(k==="60" ? "60 sec" : k==="180" ? "3 min" : k==="300" ? "5 min" : "10 min")+'</button>').join("")+'</div>';
 }
 function onboardCard(){
   if(store.get("news:onboard")) return "";
@@ -2751,9 +2759,9 @@ function landingBlock(){
     : '<div class="land-prev lp-load" role="status"><span class="lp-k">Today’s edition</span><span class="lp-t">Checking today’s sources…</span><span class="lp-m">The last successful edition opens as soon as it is available.</span></div>';
   const g = acct && acct.cid ? '<button class="btn sec2" data-v3="land-google">Continue with Google</button>' : "";
   return '<section class="land cine'+(paused ? " paused" : "")+'" aria-labelledby="land-h"><div class="cbg" data-tp="world" data-alt="" aria-hidden="true"><span class="tgrad"></span></div><div class="cfg">'
-    + '<div class="ckick">'+esc(niceDate(view.date || todayIST()))+' · Daily News Intelligence</div><h1 id="land-h">Understand what changed today.</h1>'
-    + '<p>A finite daily briefing with sources you can open — pictures, timelines and the stories that matter to your work.</p>' + prev
-    + '<div class="landbtns"><button class="btn" data-v3="land-read">Explore today’s edition</button><button class="btn sec2" data-v3="land-desk">Professional intelligence</button>'+g+'</div>'
+    + '<div class="ckick">NEWS INTELLIGENCE · '+esc(niceDate(view.date || todayIST()))+'</div><h1 id="land-h">Know what matters.<br>Understand why it matters.</h1>'
+    + '<p>Stay ahead of the world in five minutes a day.</p>' + prev
+    + '<div class="landbtns"><button class="btn" data-v3="land-read">Read today’s briefing</button><button class="btn sec2" data-v3="land-desk">Professional intelligence</button>'+g+'</div>'
     + (g ? '<p class="small land-note">Signing in syncs your saves and preferences across devices. Guest mode works fully without it.</p>' : '')
     + '<button class="linkbtn land-pause" data-v3="land-pause" aria-pressed="'+paused+'">'+(paused ? "Play motion" : "Pause motion")+'</button></div></section>';
 }
@@ -3225,7 +3233,7 @@ async function capProbe(){
 function capHtml(){
   const rows = CAPS.concat([["auth","Google sign-in",""]]).map(([k, l]) => { const c = cap[k] || { s:"loading" }; return '<li data-cap="'+k+'" data-s="'+c.s+'"><b>'+esc(l)+'</b> — '+({ enabled:"enabled", unavailable:"unavailable", degraded:"degraded", loading:"checking…" }[c.s])+(c.why ? '. '+esc(c.why) : '')+'</li>'; }).join("");
   return '<h3>Capabilities</h3><p class="small muted">Checked from this page, not assumed.</p><ul class="covlist" id="capl">'+rows+'</ul>'
-    + '<h3>Plans</h3><p class="small">Everything is free today. Plus (₹99/month) and Pro (₹299/month) are planned and <b>checkout is not available</b>: no payment is taken and nothing is locked. Entitlements will come from a server after a verified payment.</p>'
+    + '<h3>Plans</h3><p class="small">Everything is free today. The planned Pro plan (experimental ₹199/month or ₹1,499/year, with the professional tier tested later) has <b>no checkout yet</b>: no payment is taken and nothing is locked. Entitlements will come from a server after a verified payment.</p>'
     + '<h3>Your data</h3><p class="small">Saved items, follows, deadlines and settings live on this device'+(acct && acct.tok ? ' and sync to your account' : '')+'.</p><p><button class="chip" data-v16="export">Export my data (JSON)</button> <button class="chip" data-v16="del">Delete my data…</button></p><div id="delbox"></div>';
 }
 const __oa16 = openAbout;
@@ -3247,6 +3255,69 @@ document.addEventListener("click", async ev => { const b = ev.target.closest("[d
   else if(k==="del"){ const d = document.getElementById("delbox"); if(d) d.innerHTML = '<p class="warn small" role="alert"><b>This removes every saved story, event, deadline, follow and setting from this device'+(acct && acct.tok ? ' and asks the server to delete your account copy' : '')+'. It cannot be undone.</b> Export first if unsure.</p><button class="btn" data-v16="delgo">Yes, delete everything</button> <button class="btn sec2" data-v16="delno">Cancel</button>'; }
   else if(k==="delno"){ const d = document.getElementById("delbox"); if(d) d.innerHTML = ""; }
   else if(k==="delgo"){ const r = await deleteAll(); const d = document.getElementById("delbox"); if(d) d.innerHTML = '<p role="status"><b>Deleted from this device</b> ('+esc(r)+'). Reloading…</p>'; setTimeout(() => location.reload(), 900); } });
+
+/* ===== v17: optional onboarding, For you, methodology, report an issue, update toast, offline notice, reader text size ===== */
+const OB_TOPICS = [["india","India"],["world","World"],["business","Business"],["markets","Markets"],["tech","Technology"],["ai","AI"],["politics","Politics"],["economy","Economy"],["sports","Sports"],["science","Science"],["health","Health"]];
+const OB_ROLES = [["student","Student"],["professional","Working professional"],["ca","Chartered accountant"],["finance","Finance professional"],["investor","Investor"],["owner","Business owner"],["tech","Technology professional"],["general","General reader"]];
+const OB_GOALS = [["quick","Staying informed quickly"],["career","Career and industry updates"],["markets","Financial market understanding"],["regulatory","Professional and regulatory intelligence"],["exams","Exam preparation"],["awareness","General awareness"]];
+function onboardCard(){
+  if(store.get("news:onboard")) return "";
+  const fl = follows(), role = store.get("news:role"), goal = store.get("news:goal"), mk = modeKey(), tm = (store.get("news:times") || {}).morning || "";
+  const chip = (act, on, t) => '<button class="chip'+(on ? " on" : "")+'" data-v17="'+act+'" aria-pressed="'+on+'">'+t+'</button>';
+  return '<section class="sec ob" aria-label="Personalise"><div><b>Make it yours</b> <span class="muted">— every question is optional and editable later</span></div>'
+    + '<div class="obrow"><span>Interests</span>'+OB_TOPICS.map(([k, l]) => chip("oi:"+k, fl.includes(k), l)).join("")+'</div>'
+    + '<div class="obrow"><span>What you do</span>'+OB_ROLES.map(([k, l]) => chip("or:"+k, role===k, l)).join("")+'</div>'
+    + '<div class="obrow"><span>What matters most</span>'+OB_GOALS.map(([k, l]) => chip("og:"+k, goal===k, l)).join("")+'</div>'
+    + '<div class="obrow"><span>Time you have</span>'+[["60","60 sec"],["180","3 min"],["300","5 min"],["600","10 min"]].map(([k, l]) => chip("ot:"+k, mk===k, l)).join("")+'</div>'
+    + '<div class="obrow"><label for="obtime">Morning briefing time</label><input type="time" id="obtime" value="'+esc(tm)+'" data-v17time="1"></div>'
+    + '<p class="muted small">We never ask for sensitive personal details and never infer beliefs from what you read. Your choices only re-order stories you can already see.</p>'
+    + '<button class="btn" data-v17="obdone">Done</button> <button class="btn sec2" data-v17="obskip">Skip for now</button></section>';
+}
+const ROLE_PROFILE = { ca:"ca", finance:"ca" };
+document.addEventListener("click", ev => { const b = ev.target.closest("[data-v17]"); if(!b) return; const [k, ...r] = b.dataset.v17.split(":"), a = r.join(":");
+  if(k==="oi"){ const f = follows(), i = f.indexOf(a); if(i>=0) f.splice(i, 1); else f.push(a); store.set("news:follow", f); renderContent(); }
+  else if(k==="or"){ store.set("news:role", a); store.set("news:profile", ROLE_PROFILE[a] || "general"); view.rk = null; renderContent(); }
+  else if(k==="og"){ store.set("news:goal", a); renderContent(); }
+  else if(k==="ot"){ store.set("news:mode", a); renderContent(); }
+  else if(k==="obdone" || k==="obskip"){ store.set("news:onboard", 1); renderContent(); }
+  else if(k==="reset"){ ["news:follow","news:role","news:goal","news:onboard","news:times"].forEach(x => store.del(x)); store.set("news:profile", "general"); view.rk = null; closeSearch(); render(); }
+  else if(k==="fs"){ store.set("news:fs", a); applyFs(); const l = document.querySelectorAll("[data-v17^='fs:']"); l.forEach(x => x.setAttribute("aria-pressed", String(x===b))); }
+});
+document.addEventListener("change", ev => { if(ev.target.dataset && ev.target.dataset.v17time){ const t = store.get("news:times") || {}; t.morning = ev.target.value; store.set("news:times", t); } });
+/* For you — explicit follows only, with a plain label */
+function forYouBlock(){
+  const fl = follows(); if(!fl.length || !view.clusters.length) return "";
+  const seen = new Set(view.homeSeen || []), picks = ranked().filter(c => fl.includes(c.group) && !seen.has(c.id)).slice(0, 4);
+  if(!picks.length) return "";
+  return '<section class="sec foryou" aria-label="For you"><div class="sec-h"><h2>For you</h2></div><ul class="rows">'+picks.map(c => '<li class="row"><div class="rowmain"><button class="hl linkbtn" '+openAttr(c)+' style="text-align:left">'+esc(c.lead.title)+'</button><span class="cap">Because you follow '+esc(catLabel(c.group))+' · '+esc(c.lead.source)+' · '+fmtTime(c.first)+' IST</span></div></li>').join("")+'</ul></section>';
+}
+const __rc17 = renderContent;
+renderContent = function(){ __rc17(); if(view.page==="home" && view.date && view.clusters.length && !document.querySelector("#content .foryou")){ const h = forYouBlock(), d = document.querySelector("#content .done"); if(h){ if(d) d.insertAdjacentHTML("beforebegin", h); else document.querySelector("#content").insertAdjacentHTML("beforeend", h); } } };
+/* About: methodology, issues, policies, personalisation, text size */
+const ISSUE_URL = "https://github.com/vaibhavbhootra6722-droid/news-intelligence-app/issues/new";
+const issueLink = (title, ctx) => ISSUE_URL+"?title="+encodeURIComponent(title)+"&body="+encodeURIComponent((ctx || "")+"\n\nWhat looks wrong:\n");
+const __oa17 = openAbout;
+openAbout = function(){ __oa17(); const b = document.querySelector(".drawer-b"); if(!b) return; const fs = store.get("news:fs") || "m"; const s = document.createElement("div");
+  s.innerHTML = '<h3>Reading text size</h3><p><span class="seg" role="group" aria-label="Reading text size">'+[["s","A−"],["m","A"],["l","A+"]].map(([k, l]) => '<button data-v17="fs:'+k+'" aria-pressed="'+(fs===k)+'" aria-label="Text size '+k+'">'+l+'</button>').join("")+'</span></p>'
+    + '<h3>Personalisation</h3><p class="small">Your interests and role only change which stories are ranked higher for you. <button class="linkbtn" data-v17="reset">Reset personalisation</button></p>'
+    + '<h3>Methodology</h3><div class="small"><p><b>Sources.</b> Headlines come from Google News India, which lists established publishers, plus official regulator feeds where enabled. Photos are licensed images from Wikimedia Commons, used to illustrate a subject, never as proof of an event.</p>'
+    + '<p><b>Clustering.</b> Reports of the same incident are grouped by shared named entities, place and wording; wire copies are flagged and counted once.</p>'
+    + '<p><b>Importance.</b> Ranking combines public impact, severity, independent coverage, recency and your followed topics. Weights are fixed and listed in the code; popularity alone never decides.</p>'
+    + '<p><b>Summaries.</b> The app does not write its own summaries unless the optional AI feature is enabled, and then it labels the output as AI.</p>'
+    + '<p><b>Corrections.</b> Anything wrong can be reported; reports are public GitHub issues and changes are visible in the repository history.</p></div>'
+    + '<h3>Report an issue</h3><p class="small"><a href="'+esc(issueLink("Issue report", "Edition: "+view.date+"\nPage: "+location.hash))+'" target="_blank" rel="noopener noreferrer">Report a problem with this edition</a> (opens GitHub).</p>'
+    + '<h3>Privacy</h3><p class="small">Guest mode stores everything on this device only. No account is needed and nothing is sold. Analytics are local counters that never leave the device.</p>';
+  b.appendChild(s); };
+function applyFs(){ const v = { s:".92rem", m:"1rem", l:"1.15rem" }[store.get("news:fs") || "m"]; document.documentElement.style.setProperty("--rfs", v); }
+applyFs();
+/* story-level report link */
+const __od17 = openDetail;
+openDetail = function(id){ __od17(id); const c = byId(id), b = document.querySelector(".drawer-b .sqwrap, .drawer-b"); if(c && b && !b.querySelector(".rpt")) b.insertAdjacentHTML("beforeend", '<p class="small rpt"><a href="'+esc(issueLink("Story issue: "+c.lead.title.slice(0, 80), "Story: "+c.lead.title+"\nEdition: "+view.date+"\nId: "+c.id))+'" target="_blank" rel="noopener noreferrer">Report an issue with this story</a></p>'); };
+/* update toast + offline notice */
+function toast17(html, id){ let t = document.getElementById(id); if(!t){ t = document.createElement("div"); t.id = id; t.className = "toast17"; t.setAttribute("role", "status"); document.body.appendChild(t); } t.innerHTML = html; t.hidden = false; return t; }
+if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){ const had = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener("controllerchange", () => { if(had) toast17('A newer version is ready. <button class="linkbtn" onclick="location.reload()">Reload</button> <button class="linkbtn" onclick="this.parentNode.hidden=true">Later</button>', "upd17"); }); }
+function netNote(){ if(navigator.onLine){ const t = document.getElementById("off17"); if(t) t.hidden = true; return; } toast17('You are offline. Showing saved news'+(view.at ? ' from the last successful refresh at '+esc(fmtTime(view.at))+' IST' : '')+'. <button class="linkbtn" onclick="location.reload()">Retry</button>', "off17"); }
+addEventListener("offline", netNote); addEventListener("online", netNote); netNote();
 
 function render(){ renderHeader(); renderNav(); renderContent(); syncHash(); }
 let rTimer = null;

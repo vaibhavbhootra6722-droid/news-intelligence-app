@@ -27,6 +27,8 @@
 15. **Markets**: `scripts/markets.mjs` (Yahoo public chart endpoint, end-of-day, keyless) -> `markets.json`; SVG line chart with range buttons, accessible table, stale/error/no-data states, "not real-time".
 16. **Account/data**: capability discovery in About (probes `/api/*?config=1`; shows enabled/unavailable/degraded), export (JSON), delete (explicit confirmation, also asks the server when signed in), tombstones so a deletion is not resurrected by sync, Plus/Pro copy with checkout unavailable.
 
+17. **Brief v2 subset**: palette tokens per spec (dark + warm light), landing promise/CTAs, optional onboarding (interests, role, goal, 10-min option, briefing time), "For you" with reason labels, methodology + report-an-issue + privacy in About, reading text size, update toast, offline notice, reset personalisation. Docs in `docs/` (audit, architecture, schema, rights registry, cost model, launch blockers, scorecard 57/100, draft policies).
+
 ## Evidence
 `engine` 76/76 · `classify` 184/184 · `editorial` 19/19 · `v3` 79/79 · `v11` 10/10 · `v12` 17/17 · `v13` all · `v14` (reading mode, quiz, saved, explore, desk, deadlines, markets, capabilities, export/delete, tombstones, migration run twice, SW never caches /api) all passed · layout audit 320-2560 px: no page-level horizontal overflow (strips scroll by design).
 
@@ -39,4 +41,4 @@
 - Migration: no key renamed or removed; new keys (`news:tomb`, `news:dlx`, `news:quiz`, `news:livemode`, `news:evsaved`, `news:evfollow`, `news:evtz`) are additive; pre-upgrade data run twice is unchanged.
 
 ## Rollback
-`git revert` the release commit(s); the service worker version (`ni-shell-7`) changes so clients refetch. The `data` branch is rebuilt every 20 min and can be ignored by clients (relay fallback).
+`git revert` the release commit(s); the service worker version (`ni-shell-8`) changes so clients refetch. The `data` branch is rebuilt every 20 min and can be ignored by clients (relay fallback).
